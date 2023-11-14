@@ -49,8 +49,18 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
                 if(_gouraudShaderProgram) {
                     _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.lightType, _lightType );
                 }
+                if(_goofyShaderProgram) {
+                    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.lightType, _lightType );
+                }
                 break;
-
+            
+            case GLFW_KEY_H:
+                if(_goofyShaderProgram){
+                    glm::vec3 hitVec = _pArcballCam->getPosition() - _pArcballCam->getLookAtPoint();
+                    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.hitVector, glm::normalize(hitVec));
+                    glfwSetTime(0);
+                }
+                break;
             default: break; // suppress CLion warning
         }
     }
@@ -133,6 +143,31 @@ void Lab08Engine::mSetupOpenGL() {
 }
 
 void Lab08Engine::mSetupShaders() {
+    //Setup goofy ball shader
+    _goofyShaderProgram = new CSCI441::ShaderProgram( "shaders/goofyShader.v.glsl", "shaders/goofyShader.f.glsl" );
+    // get uniform locations
+    _goofyShaderProgramUniformLocations.hitVector           = _goofyShaderProgram->getUniformLocation("hitVec");
+    _goofyShaderProgramUniformLocations.timeSince           = _goofyShaderProgram->getUniformLocation("timeSince");
+    _goofyShaderProgramUniformLocations.mvpMatrix           = _goofyShaderProgram->getUniformLocation("mvpMatrix");
+    _goofyShaderProgramUniformLocations.modelMatrix         = _goofyShaderProgram->getUniformLocation("modelMatrix");
+    _goofyShaderProgramUniformLocations.normalMatrix        = _goofyShaderProgram->getUniformLocation("normalMtx");
+    _goofyShaderProgramUniformLocations.eyePos              = _goofyShaderProgram->getUniformLocation("eyePos");
+    _goofyShaderProgramUniformLocations.lightPos            = _goofyShaderProgram->getUniformLocation("lightPos");
+    _goofyShaderProgramUniformLocations.lightDir            = _goofyShaderProgram->getUniformLocation("lightDir");
+    _goofyShaderProgramUniformLocations.lightCutoff         = _goofyShaderProgram->getUniformLocation("lightCutoff");
+    _goofyShaderProgramUniformLocations.lightColor          = _goofyShaderProgram->getUniformLocation("lightColor");
+    _goofyShaderProgramUniformLocations.lightType           = _goofyShaderProgram->getUniformLocation("lightType");
+    _goofyShaderProgramUniformLocations.materialDiffColor   = _goofyShaderProgram->getUniformLocation("materialDiffColor");
+    _goofyShaderProgramUniformLocations.materialSpecColor   = _goofyShaderProgram->getUniformLocation("materialSpecColor");
+    _goofyShaderProgramUniformLocations.materialShininess   = _goofyShaderProgram->getUniformLocation("materialShininess");
+    _goofyShaderProgramUniformLocations.materialAmbColor    = _goofyShaderProgram->getUniformLocation("materialAmbColor");
+    // get attribute locations
+    _goofyShaderProgramAttributeLocations.vPos              = _goofyShaderProgram->getAttributeLocation("vPos");
+    _goofyShaderProgramAttributeLocations.vNormal           = _goofyShaderProgram->getAttributeLocation("vNormal");
+
+    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.hitVector, glm::vec3(0));
+    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.timeSince, 1);
+
     //***************************************************************************
     // Setup Gouraud Shader Program
 
@@ -193,26 +228,6 @@ void Lab08Engine::mSetupBuffers() {
     // create the platform
     _createPlatform(_vaos[VAO_ID::PLATFORM], _vbos[VAO_ID::PLATFORM], _ibos[VAO_ID::PLATFORM], _numVAOPoints[VAO_ID::PLATFORM]);
 
-    // ------------------------------------------------------------------------------------------------------
-    // Bezier Curve generation
-
-    fprintf( stdout, "\nEnter filename of Bezier Control Points to load: " );
-    char *filename = (char*)malloc(sizeof(char)*256);
-    fscanf( stdin, "%s", filename );
-    _loadControlPointsFromFile(filename,
-                               &_bezierCurve.numControlPoints, &_bezierCurve.numCurves,
-                               _bezierCurve.controlPoints);
-    if(!_bezierCurve.controlPoints) {
-        fprintf( stderr, "[ERROR]: Error loading control points from file\n" );
-    } else {
-        fprintf( stdout, "[INFO]: Read in %u points comprising %u curves\n", _bezierCurve.numControlPoints, _bezierCurve.numCurves );
-
-        // generate cage
-        _createCage(_vaos[VAO_ID::BEZIER_CAGE], _vbos[VAO_ID::BEZIER_CAGE], _numVAOPoints[VAO_ID::BEZIER_CAGE] );
-
-        // generate curve
-        _createCurve( _vaos[VAO_ID::BEZIER_CURVE], _vbos[VAO_ID::BEZIER_CURVE], _numVAOPoints[VAO_ID::BEZIER_CURVE] );
-    }
 }
 
 void Lab08Engine::_createPlatform(GLuint vao, GLuint vbo, GLuint ibo, GLsizei &numVAOPoints) const {
@@ -251,51 +266,6 @@ void Lab08Engine::_createPlatform(GLuint vao, GLuint vbo, GLuint ibo, GLsizei &n
     fprintf( stdout, "[INFO]: platform read in with VAO/VBO/IBO %d/%d/%d & %d points\n", vao, vbo, ibo, numVAOPoints );
 }
 
-void Lab08Engine::_createCage(GLuint vao, GLuint vbo, GLsizei &numVAOPoints) const {
-    numVAOPoints = _bezierCurve.numControlPoints;
-
-    glBindVertexArray( vao );
-
-    glBindBuffer( GL_ARRAY_BUFFER, vbo );
-    glBufferData( GL_ARRAY_BUFFER, numVAOPoints * sizeof(glm::vec3), _bezierCurve.controlPoints, GL_STATIC_DRAW );
-
-    glEnableVertexAttribArray( _gouraudShaderProgramAttributeLocations.vPos );
-    glVertexAttribPointer( _gouraudShaderProgramAttributeLocations.vPos, 3, GL_FLOAT, GL_FALSE, 0, nullptr );
-
-    fprintf( stdout, "[INFO]: control points cage read in with VAO/VBO %d/%d & %d points\n", vao, vbo, numVAOPoints );
-}
-
-void Lab08Engine::_createCurve(GLuint vao, GLuint vbo, GLsizei &numVAOPoints) const {
-    // TODO #02: generate the Bezier curve
-    printf("What resolution of curve would you like? ");
-    int resolution =25;
-    scanf("%d", &resolution);
-    numVAOPoints = _bezierCurve.numCurves * (resolution+1);
-    
-    glm::vec3 curvePoints[numVAOPoints];
-    int pointCounter = 0;
-    for(int i=1;i<_bezierCurve.numControlPoints-2; i+=3){
-        glm::vec3 p0,p1,p2,p3;
-        p0 = _bezierCurve.controlPoints[i-1];
-        p1 =_bezierCurve.controlPoints[i];
-        p2 = _bezierCurve.controlPoints[i+1];
-        p3 = _bezierCurve.controlPoints[i+2];
-        for(int j=0;j<=resolution;j++){
-            float curveFraction = (float)j/resolution;
-            curvePoints[pointCounter] = _evalBezierCurve(p0,p1,p2,p3,curveFraction);
-            pointCounter++;
-        }
-    }   
-    
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3)*numVAOPoints, (void*)curvePoints, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray( _gouraudShaderProgramAttributeLocations.vPos );
-    glVertexAttribPointer( _gouraudShaderProgramAttributeLocations.vPos, 3, GL_FLOAT, GL_FALSE, 0, nullptr );
-
-    fprintf( stdout, "[INFO]: bezier curve read in with VAO/VBO %d/%d & %d points\n", vao, vbo, numVAOPoints );
-}
 
 void Lab08Engine::mSetupTextures() {
     // unused in this lab
@@ -330,6 +300,13 @@ void Lab08Engine::mSetupScene() {
     _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.lightCutoff, lightCutoff);
     _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.lightType, _lightType);
 
+    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.lightColor, lightColor);
+    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.lightPos, _lightPos);
+    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.lightDir, _lightDir);
+    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.lightCutoff, lightCutoff);
+    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.lightType, _lightType);
+
+
     // set flat shading color
     glm::vec3 flatColor(1.0f, 1.0f, 1.0f);
     _flatShaderProgram->setProgramUniform(_flatShaderProgramUniformLocations.color, flatColor);
@@ -358,7 +335,6 @@ void Lab08Engine::mCleanupBuffers() {
     glDeleteBuffers( NUM_VAOS, _ibos );
 
     fprintf( stdout, "[INFO]: ...deleting models..\n" );
-    free( _bezierCurve.controlPoints );
 }
 
 void Lab08Engine::mCleanupTextures() {
@@ -385,6 +361,7 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     // use the gouraud shader
     _gouraudShaderProgram->useProgram();
 
+    _setMaterialProperties(CSCI441::Materials::RUBY);
     modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 10, -4));
     _computeAndSendTransformationMatrices( _gouraudShaderProgram,
                                             modelMatrix, viewMtx, projMtx,
@@ -393,7 +370,6 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
                                             _gouraudShaderProgramUniformLocations.normalMatrix);
 
     testModel->draw(_gouraudShaderProgram->getShaderProgramHandle());
-
     //***************************************************************************
     // draw the ground
 
@@ -414,74 +390,24 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
             glDrawElements( GL_TRIANGLE_STRIP, _numVAOPoints[VAO_ID::PLATFORM], GL_UNSIGNED_SHORT, nullptr );
         }
     }
+    //DRAW THE CUE BALL
+    _goofyShaderProgram->useProgram();
 
-    //***************************************************************************
-    // draw the control points
+    _setMaterialProperties(CSCI441::Materials::WHITE_PLASTIC);
+    modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 2, 0));
+    _computeAndSendTransformationMatrices( _goofyShaderProgram,
+                                            modelMatrix, viewMtx, projMtx,
+                                            _goofyShaderProgramUniformLocations.mvpMatrix,
+                                            _goofyShaderProgramUniformLocations.modelMatrix,
+                                            _goofyShaderProgramUniformLocations.normalMatrix);
 
-    // use the ruby material
-    _setMaterialProperties(CSCI441::Materials::RUBY);
+    CSCI441::drawSolidSphere(2,20,20);
 
-    // draw each of the control points represented by a sphere
-    for(int i = 0; i < _bezierCurve.numControlPoints; i++) {
-        modelMatrix = glm::translate(glm::mat4(1.0f), _bezierCurve.controlPoints[i]);
-        _computeAndSendTransformationMatrices( _gouraudShaderProgram,
-                                               modelMatrix, viewMtx, projMtx,
-                                               _gouraudShaderProgramUniformLocations.mvpMatrix,
-                                               _gouraudShaderProgramUniformLocations.modelMatrix,
-                                               _gouraudShaderProgramUniformLocations.normalMatrix);
-        CSCI441::drawSolidSphere(0.25f, 16, 16);
-    }
-
-    //***************************************************************************
-    // draw the animated evaluation sphere
-
-    // use the bronze material
-    _setMaterialProperties(CSCI441::Materials::BRONZE);
-
-    // TODO #03C: evaluate the current position along the curve system and draw a sphere at the current point
-    int curveIndex = (int)_bezierCurve.progress;
-    float curveProgress = _bezierCurve.progress-(int)_bezierCurve.progress;
-
-    int startingPointIndex = curveIndex * 3;
-    glm::vec3 p0,p1,p2,p3;
-    p0 = _bezierCurve.controlPoints[startingPointIndex];
-    p1 = _bezierCurve.controlPoints[startingPointIndex+1];
-    p2 = _bezierCurve.controlPoints[startingPointIndex+2];
-    p3 = _bezierCurve.controlPoints[startingPointIndex+3];
-
-    glm::vec3 spherePos = _evalBezierCurve(p0,p1,p2,p3,curveProgress);
-
-    
-    modelMatrix = glm::translate(glm::mat4(1), spherePos);
-        _computeAndSendTransformationMatrices( _gouraudShaderProgram,
-                                               modelMatrix, viewMtx, projMtx,
-                                               _gouraudShaderProgramUniformLocations.mvpMatrix,
-                                               _gouraudShaderProgramUniformLocations.modelMatrix,
-                                               _gouraudShaderProgramUniformLocations.normalMatrix);
-        CSCI441::drawSolidSphere(0.25f, 16, 16);
-    
-    //***************************************************************************
-    // draw the control cage
-
-    // use the flat shader to draw lines
     _flatShaderProgram->useProgram();
     modelMatrix = glm::mat4(1.0f);
     _computeAndSendTransformationMatrices(_flatShaderProgram,
                                           modelMatrix, viewMtx, projMtx,
-                                         _flatShaderProgramUniformLocations.mvpMatrix);
-
-    // draw the curve control cage
-    glBindVertexArray( _vaos[VAO_ID::BEZIER_CAGE] );
-    glDrawArrays(GL_LINE_STRIP, 0, _numVAOPoints[VAO_ID::BEZIER_CAGE]);
-
-    //***************************************************************************
-    // draw the curve
-
-    // LOOKHERE #1 draw the curve itself
-    glBindVertexArray( _vaos[VAO_ID::BEZIER_CURVE] );
-    glDrawArrays(GL_LINE_STRIP, 0, _numVAOPoints[VAO_ID::BEZIER_CURVE]);
-
-    //***************************************************************************
+                                         _flatShaderProgramUniformLocations.mvpMatrix); 
     // draw a visual of where our point or spotlight is located
 
     // if using a point light
@@ -515,10 +441,8 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
 }
 
 void Lab08Engine::_updateScene() {
-    // TODO #03B: update the evaluation parameter
-    _bezierCurve.progress += 0.0005f;
+    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.timeSince, (float)glfwGetTime());
 
-    if(_bezierCurve.progress > _bezierCurve.numCurves) _bezierCurve.progress=0;
 }
 
 void Lab08Engine::run() {
@@ -553,48 +477,6 @@ void Lab08Engine::run() {
 //
 // Private Helper FUnctions
 
-void Lab08Engine::_loadControlPointsFromFile(const char* FILENAME, GLuint *numBezierPoints, GLuint *numBezierCurves, glm::vec3* &bezierPoints) {
-    // open the file
-    FILE *file = fopen(FILENAME, "r");
-
-    // check that the file opened properly
-    if(!file) {
-        fprintf( stderr, "[ERROR]: Could not open \"%s\"\n", FILENAME );
-    } else {
-        // first value is the number of points in the file
-        fscanf( file, "%u\n", numBezierPoints );
-
-        *numBezierCurves = (*numBezierPoints-1)/3;
-
-        fprintf( stdout, "[INFO]: Reading in %u control points\n", *numBezierPoints );
-
-        // allocate memory
-        bezierPoints = (glm::vec3*)malloc( sizeof( glm::vec3 ) * *numBezierPoints );
-        if(!bezierPoints) {
-            fprintf( stderr, "[ERROR]: Could not allocate space for control points\n" );
-        } else {
-            // read in all the points
-            for( int i = 0; i < *numBezierPoints; i++ ) {
-                // each line is formatted as "x,y,z\n" as comma seperated floats
-                fscanf( file, "%f,%f,%f\n", &(bezierPoints[i].x), &(bezierPoints[i].y), &(bezierPoints[i].z));
-            }
-        }
-    }
-    // close the file
-    fclose(file);
-}
-
-glm::vec3 Lab08Engine::_evalBezierCurve(const glm::vec3 P0, const glm::vec3 P1, const glm::vec3 P2, const glm::vec3 P3, const GLfloat T) {
-    // TODO #01: solve the curve equation
-    glm::vec3 a = (-P0 + P1*3.f - P2*3.f + P3);
-    glm::vec3 b = (P0*3.f - P1*6.f + P2*3.f);
-    glm::vec3 c = (P0*-3.f + P1*3.f);
-    glm::vec3 d = P0;
-
-    glm::vec3 bezierPoint = a*(float)pow(T,3) + b*(float)pow(T,2) + c*(float)T + d; // temp value to allow code to compile
-
-    return bezierPoint;
-}
 
 void Lab08Engine::_setMaterialProperties(CSCI441::Materials::Material material) const {
     // ensure our shader program is not null
@@ -604,6 +486,13 @@ void Lab08Engine::_setMaterialProperties(CSCI441::Materials::Material material) 
         glProgramUniform3fv( _gouraudShaderProgram->getShaderProgramHandle(), _gouraudShaderProgramUniformLocations.materialSpecColor, 1, material.specular  );
         glProgramUniform1f(  _gouraudShaderProgram->getShaderProgramHandle(), _gouraudShaderProgramUniformLocations.materialShininess,    material.shininess );
         glProgramUniform3fv( _gouraudShaderProgram->getShaderProgramHandle(), _gouraudShaderProgramUniformLocations.materialAmbColor,  1, material.ambient   );
+    }
+    if(_goofyShaderProgram) {
+        // set the D, S, A, & shininess components of the material to our goofy Shader
+        glProgramUniform3fv( _goofyShaderProgram->getShaderProgramHandle(), _goofyShaderProgramUniformLocations.materialDiffColor, 1, material.diffuse   );
+        glProgramUniform3fv( _goofyShaderProgram->getShaderProgramHandle(), _goofyShaderProgramUniformLocations.materialSpecColor, 1, material.specular  );
+        glProgramUniform1f(  _goofyShaderProgram->getShaderProgramHandle(), _goofyShaderProgramUniformLocations.materialShininess,    material.shininess );
+        glProgramUniform3fv( _goofyShaderProgram->getShaderProgramHandle(), _goofyShaderProgramUniformLocations.materialAmbColor,  1, material.ambient   );
     }
 }
 

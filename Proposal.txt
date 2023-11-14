@@ -1,0 +1,17 @@
+Team Members: Asher Dykstra(FafGar), Zack Snyder(ENA), Carter Perun(GfxMan)
+
+Project Description:
+
+We plan to create a 3D pool game (We promise we came up with this idea before lab 11). It will feature standard pool balls, a custom physics engine, and an animated arm to manipulate the cue. Two users will interact with the program by
+controlling the cue to hit the cue ball. We also plan to have background models which place the game somewhere on Mines
+campus.
+
+The balls will be textured for coloring and indentifying the type of ball. textures will also be used for the pool table and environment around it. 
+
+Multiple cameras will be used to allow the player to rotate the camera around the scene, veiw the scene from a top down view, and get a close up on the cue to light up a shot. 
+
+The shaders will use a custom implementation of toon shading. We will convert the rgb output after lighting to hsv, and then round the value component to create a stepped coloring. We may also include rim lighting. This shading setup will make the game have a unique art style. For the second shader, we plan on giving the cue ball a special shader that will utilize vertex deformation based on the location of contact with the pool cue.
+
+We will use multiple types of lighting, including a dim directional light, and a prominent spotlight for creating a moody feel to the game, like a billiards bar. We may also put a dim point light on the cue ball.
+
+The player arm will be animated and the balls will roll. Additionally, the spot light will be animated as if it is swinging slightly.

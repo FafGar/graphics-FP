@@ -119,11 +119,7 @@ private:
     /// \desc used to index through our VAO/VBO/IBO array to give named access
     enum VAO_ID {
         /// \desc the platform that represents our ground for everything to appear on
-        PLATFORM = 0,
-        /// \desc the control points that form the cage for our bezier curve
-        BEZIER_CAGE = 1,
-        /// \desc the actual bezier curve itself
-        BEZIER_CURVE = 2
+        PLATFORM = 0
     };
     /// \desc VAO for our objects
     GLuint _vaos[NUM_VAOS];
@@ -141,52 +137,52 @@ private:
     /// \param [out] numVAOPoints sets the number of vertices that make up the IBO array
     void _createPlatform(GLuint vao, GLuint vbo, GLuint ibo, GLsizei &numVAOPoints) const;
 
-    /// \desc Bezier Curve Information
-    struct BezierCurve {
-        /// \desc control points array
-        glm::vec3* controlPoints = nullptr;
-        /// \desc number of control points in the curve system.
-        /// \desc corresponds to the size of controlPoints array
-        GLuint numControlPoints = 0;
-        /// \desc number of curves in the system
-        GLuint numCurves = 0;
-        // TODO #03A: make a data member to track the current evaluation parameter
-        float progress = 0;
-    } _bezierCurve;
-
-    /// \desc creates the Bezier curve cage object
-    /// \param [in] vao VAO descriptor to bind
-    /// \param [in] vbo VBO descriptor to bind
-    /// \param [out] numVAOPoints sets the number of vertices that make up the IBO array
-    void _createCage(GLuint vao, GLuint vbo, GLsizei &numVAOPoints) const;
-
-    /// \desc creates the Bezier curve object
-    /// \param [in] vao VAO descriptor to bind
-    /// \param [in] vbo VBO descriptor to bind
-    /// \param [out] numVAOPoints sets the number of vertices that make up the IBO array
-    void _createCurve(GLuint vao, GLuint vbo, GLsizei &numVAOPoints) const;
-
-    /// \desc This function loads the Bezier control points from a given file.  Upon
-    /// completion, the parameters will store the number of points read in, the
-    /// number of curves they represent, and the array of actual points.
-    /// \param [in] FILENAME file to load control points from
-    /// \param [out] numBezierPoints the number of points read in
-    /// \param [out] numBezierCurves the number of curves read in
-    /// \param [out] bezierPoints the points array read in
-    static void _loadControlPointsFromFile(const char* FILENAME, GLuint *numBezierPoints, GLuint *numBezierCurves, glm::vec3* &bezierPoints);
-
-    /// \desc This function solves the Bezier curve equation for four given control
-    /// points at a given location t.
-    /// \param p0 first control point
-    /// \param p1 second control point
-    /// \param p2 third control point
-    /// \param p3 fourth control point
-    /// \param t parameter to evaluate control points
-    /// \returns interpolated point
-    [[nodiscard]] static glm::vec3 _evalBezierCurve(glm::vec3 p0, glm::vec3 p1, glm::vec3 p2, glm::vec3 p3, GLfloat t);
 
     //***************************************************************************
     // Shader Program Information
+
+    /// \desc shader program for cue ball weirdness
+     CSCI441::ShaderProgram* _goofyShaderProgram;
+    /// \desc stores the locations of all of our shader uniforms
+    struct goofyShaderProgramUniformLocations {
+        /// \desc vector in the direction of the incoming hit
+        GLfloat hitVector;
+        /// \desc time since hit. Used for animated movement
+        GLfloat timeSince;
+        /// \desc precomputed MVP matrix location
+        GLint mvpMatrix;
+        /// \desc model matrix location
+        GLint modelMatrix;
+        /// \desc normal matrix location
+        GLint normalMatrix;
+        /// \desc camera position location
+        GLint eyePos;
+        /// \desc light position location - used for point/spot
+        GLint lightPos;
+        /// \desc light direction location - used for directional/spot
+        GLint lightDir;
+        /// \desc light cone angle location - used for spot
+        GLint lightCutoff;
+        /// \desc color of the light location
+        GLint lightColor;
+        /// \desc type of the light location - 0 point 1 directional 2 spot
+        GLint lightType;
+        /// \desc material diffuse color location
+        GLint materialDiffColor;
+        /// \desc material specular color location
+        GLint materialSpecColor;
+        /// \desc material shininess factor location
+        GLint materialShininess;
+        /// \desc material ambient color location
+        GLint materialAmbColor;
+    } _goofyShaderProgramUniformLocations;
+    /// \desc stores the locations of all of our shader attributes
+    struct goofyShaderProgramAttributeLocations {
+        /// \desc vertex position location
+        GLint vPos;
+        /// \desc vertex normal location
+        GLint vNormal;
+    } _goofyShaderProgramAttributeLocations;
 
     /// \desc shader program that performs Gouraud Shading with the Phong Illumination Model
     CSCI441::ShaderProgram* _gouraudShaderProgram;
