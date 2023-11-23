@@ -99,6 +99,10 @@ void Lab08Engine::handleCursorPositionEvent(glm::vec2 currMousePosition) {
             // set the eye position - needed for specular reflection
             _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.eyePos, _pArcballCam->getPosition());
         }
+        if(_goofyShaderProgram) {
+            // set the eye position - needed for specular reflection
+            _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.eyePos, _pArcballCam->getPosition());
+        }
     }
     // passive motion
     else {
@@ -152,11 +156,11 @@ void Lab08Engine::mSetupShaders() {
     _goofyShaderProgramUniformLocations.modelMatrix         = _goofyShaderProgram->getUniformLocation("modelMatrix");
     _goofyShaderProgramUniformLocations.normalMatrix        = _goofyShaderProgram->getUniformLocation("normalMtx");
     _goofyShaderProgramUniformLocations.eyePos              = _goofyShaderProgram->getUniformLocation("eyePos");
-    _goofyShaderProgramUniformLocations.lightPos            = _goofyShaderProgram->getUniformLocation("lightPos");
-    _goofyShaderProgramUniformLocations.lightDir            = _goofyShaderProgram->getUniformLocation("lightDir");
+    _goofyShaderProgramUniformLocations.spotLightPos            = _goofyShaderProgram->getUniformLocation("spotLightPos");
+    _goofyShaderProgramUniformLocations.spotLightDir            = _goofyShaderProgram->getUniformLocation("spotLightDir");
+    _goofyShaderProgramUniformLocations.dirLightDir            = _goofyShaderProgram->getUniformLocation("dirLightDir");
     _goofyShaderProgramUniformLocations.lightCutoff         = _goofyShaderProgram->getUniformLocation("lightCutoff");
     _goofyShaderProgramUniformLocations.lightColor          = _goofyShaderProgram->getUniformLocation("lightColor");
-    _goofyShaderProgramUniformLocations.lightType           = _goofyShaderProgram->getUniformLocation("lightType");
     _goofyShaderProgramUniformLocations.materialDiffColor   = _goofyShaderProgram->getUniformLocation("materialDiffColor");
     _goofyShaderProgramUniformLocations.materialSpecColor   = _goofyShaderProgram->getUniformLocation("materialSpecColor");
     _goofyShaderProgramUniformLocations.materialShininess   = _goofyShaderProgram->getUniformLocation("materialShininess");
@@ -288,23 +292,27 @@ void Lab08Engine::mSetupScene() {
 
     // set up light info
     glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
-    _lightPos = glm::vec3(5.0f, 5.0f, 5.0f);
-    _lightDir = glm::vec3(-1.0f, -5.0f, -1.0f);
+    _spotLightPos = glm::vec3(0.0f, 10.0f, 0.0f);
+    _spotLightDir = glm::vec3(0,-1,0);
+    _lightDir = glm::vec3(-1.0f, 0.0f, -1.0f);
     _lightAngle = glm::radians(27.5f);
     float lightCutoff = glm::cos(_lightAngle);
     _lightType = 0;
 
     _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.lightColor, lightColor);
-    _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.lightPos, _lightPos);
+    _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.lightPos, _spotLightPos);
     _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.lightDir, _lightDir);
     _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.lightCutoff, lightCutoff);
     _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.lightType, _lightType);
 
     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.lightColor, lightColor);
-    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.lightPos, _lightPos);
-    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.lightDir, _lightDir);
+    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.spotLightPos, _spotLightPos);
+    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.spotLightPos, _spotLightDir);
+    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.dirLightDir, _lightDir);
     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.lightCutoff, lightCutoff);
     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.lightType, _lightType);
+
+    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.eyePos, _pArcballCam->getPosition());
 
 
     // set flat shading color
@@ -361,35 +369,35 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     // use the gouraud shader
     _gouraudShaderProgram->useProgram();
 
-    _setMaterialProperties(CSCI441::Materials::RUBY);
-    modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 10, -4));
-    _computeAndSendTransformationMatrices( _gouraudShaderProgram,
-                                            modelMatrix, viewMtx, projMtx,
-                                            _gouraudShaderProgramUniformLocations.mvpMatrix,
-                                            _gouraudShaderProgramUniformLocations.modelMatrix,
-                                            _gouraudShaderProgramUniformLocations.normalMatrix);
+    // _setMaterialProperties(CSCI441::Materials::RUBY);
+    // modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 10, -4));
+    // _computeAndSendTransformationMatrices( _gouraudShaderProgram,
+    //                                         modelMatrix, viewMtx, projMtx,
+    //                                         _gouraudShaderProgramUniformLocations.mvpMatrix,
+    //                                         _gouraudShaderProgramUniformLocations.modelMatrix,
+    //                                         _gouraudShaderProgramUniformLocations.normalMatrix);
 
-    testModel->draw(_gouraudShaderProgram->getShaderProgramHandle());
+    // testModel->draw(_gouraudShaderProgram->getShaderProgramHandle());
     //***************************************************************************
     // draw the ground
 
     // use the emerald material
-    _setMaterialProperties(CSCI441::Materials::EMERALD);
+    // _setMaterialProperties(CSCI441::Materials::EMERALD);
 
-    // draw a larger ground plane by translating a single quad across a grid
-    const int GROUND_SIZE = 6;
-    for(int i = -GROUND_SIZE; i <= GROUND_SIZE; i++) {
-        for(int j = -GROUND_SIZE; j <= GROUND_SIZE; j++) {
-            modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(i, 0, j));
-            _computeAndSendTransformationMatrices( _gouraudShaderProgram,
-                                                   modelMatrix, viewMtx, projMtx,
-                                                   _gouraudShaderProgramUniformLocations.mvpMatrix,
-                                                   _gouraudShaderProgramUniformLocations.modelMatrix,
-                                                   _gouraudShaderProgramUniformLocations.normalMatrix);
-            glBindVertexArray( _vaos[VAO_ID::PLATFORM] );
-            glDrawElements( GL_TRIANGLE_STRIP, _numVAOPoints[VAO_ID::PLATFORM], GL_UNSIGNED_SHORT, nullptr );
-        }
-    }
+    // // draw a larger ground plane by translating a single quad across a grid
+    // const int GROUND_SIZE = 6;
+    // for(int i = -GROUND_SIZE; i <= GROUND_SIZE; i++) {
+    //     for(int j = -GROUND_SIZE; j <= GROUND_SIZE; j++) {
+    //         modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(i, 0, j));
+    //         _computeAndSendTransformationMatrices( _gouraudShaderProgram,
+    //                                                modelMatrix, viewMtx, projMtx,
+    //                                                _gouraudShaderProgramUniformLocations.mvpMatrix,
+    //                                                _gouraudShaderProgramUniformLocations.modelMatrix,
+    //                                                _gouraudShaderProgramUniformLocations.normalMatrix);
+    //         glBindVertexArray( _vaos[VAO_ID::PLATFORM] );
+    //         glDrawElements( GL_TRIANGLE_STRIP, _numVAOPoints[VAO_ID::PLATFORM], GL_UNSIGNED_SHORT, nullptr );
+    //     }
+    // }
     //DRAW THE CUE BALL
     _goofyShaderProgram->useProgram();
 
@@ -413,7 +421,7 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     // if using a point light
     if( _lightType == 0 ) {
         // move to the light location
-        modelMatrix = glm::translate( glm::mat4(1.0f), _lightPos );
+        modelMatrix = glm::translate( glm::mat4(1.0f), _spotLightPos );
         _computeAndSendTransformationMatrices(_flatShaderProgram,
                                               modelMatrix, viewMtx, projMtx,
                                               _flatShaderProgramUniformLocations.mvpMatrix);
@@ -423,7 +431,7 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     // if using a spotlight
     else if( _lightType == 2 ) {
         // move to the light location
-        modelMatrix = glm::translate( glm::mat4(1.0f), _lightPos );
+        modelMatrix = glm::translate( glm::mat4(1.0f), _spotLightPos );
 
         // orient with the light direction
         glm::vec3 rotAxis = glm::normalize( glm::cross( CSCI441::Y_AXIS_NEG, glm::normalize(_lightDir) ) );
@@ -442,6 +450,13 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
 
 void Lab08Engine::_updateScene() {
     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.timeSince, (float)glfwGetTime());
+
+    // spotLightSwingAngle += spotLightDTheta;
+    if(fabs(spotLightSwingAngle) > M_PI_4 ) spotLightDTheta = -spotLightDTheta;
+    // _spotLightPos.z = glm::sin(spotLightSwingAngle);
+    _spotLightDir = glm::vec3(0,-glm::cos(spotLightSwingAngle),glm::sin(spotLightSwingAngle));
+    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.spotLightPos, _spotLightPos);
+    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.spotLightPos, _spotLightDir);
 
 }
 

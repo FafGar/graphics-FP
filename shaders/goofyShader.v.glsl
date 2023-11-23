@@ -7,15 +7,16 @@ uniform mat4 mvpMatrix;                 // the precomputed Model-View-Projection
 uniform mat4 modelMatrix;               // just the model matrix
 uniform mat3 normalMtx;                 // normal matrix
 uniform vec3 eyePos;                    // eye position in world space
-uniform vec3 lightPos;                  // light position in world space
-uniform vec3 lightDir;                  // light direction in world space
+uniform vec3 spotLightPos;                  // spot light position in world space
+uniform vec3 spotLightDir;             // direction of the spot light
+uniform vec3 dirLightDir;             // direction of the directional light
 uniform float lightCutoff;              // angle of our spotlight
 uniform vec3 lightColor;                // light color
 uniform vec3 materialDiffColor;         // the material diffuse color
 uniform vec3 materialSpecColor;         // the material specular color
 uniform float materialShininess;        // the material shininess value
 uniform vec3 materialAmbColor;          // the material ambient color
-uniform uint lightType;                 // 0 - point light, 1 - directional light, 2 - spotlight
+// uniform uint lightType;                 // 0 - point light, 1 - directional light, 2 - spotlight
 
 // attribute inputs
 layout(location = 0) in vec3 vPos;      // the position of this specific vertex in object space
@@ -29,57 +30,47 @@ float redOffset;
 
 // compute the diffuse color using lambertian diffuse reflectance
 vec3 diffuseColor(vec3 vertexPosition, vec3 vertexNormal) {
-    vec3 lightVector;
 
     // directional light
-    if(lightType == 1) {
-        lightVector = normalize( -lightDir );
-    }
-    // spotlight or point light
-    else {
-        lightVector = normalize(lightPos - vertexPosition);
-    }
+    vec3 dirLightVector = normalize( -dirLightDir );
+    // spotlight light
+    vec3 spotLightVector = normalize(vertexPosition- spotLightPos);
 
-    vec3 diffColor = lightColor * materialDiffColor * max( dot(vertexNormal, lightVector), 0.0 );
+    vec3 diffColor = lightColor  * max( dot(vertexNormal, dirLightVector), 0.0 );
 
     // spotlight - check if within cone
-    if(lightType == 2) {
-        float theta = dot(normalize(lightDir), -lightVector);
-        if( theta <= lightCutoff ) {
-            diffColor = vec3(0.0, 0.0, 0.0);
-        }
+    float theta = dot(normalize(spotLightDir), - spotLightVector);
+    if( theta <= lightCutoff ) {
+        diffColor += vec3(0.0, 0.0, 0.0);
+    } else{
+        diffColor += lightColor * max( dot(vertexNormal, spotLightVector), 0.0 );
     }
 
-    return diffColor;
+    return diffColor* materialDiffColor;
 }
 
 // compute the specular color using Blinn-Phong specular reflectance
 vec3 specularColor(vec3 vertexPosition, vec3 vertexNormal) {
-    vec3 lightVector;
-
     // directional light
-    if(lightType == 1) {
-        lightVector = normalize( -lightDir );
-    }
-    // spotlight or point light
-    else {
-        lightVector = normalize(lightPos - vertexPosition);
-    }
+    vec3 dirLightVector = normalize( -dirLightDir );
+    // spotlight light
+    vec3 spotLightVector = normalize(spotLightPos - vertexPosition);
 
     vec3 viewVector = normalize(eyePos - vertexPosition);
-    vec3 halfwayVector = normalize(viewVector + lightVector);
+    vec3 dirHalfwayVector = reflect(spotLightVector, vertexNormal);
 
-    vec3 specColor = lightColor * materialSpecColor * pow(max( dot(vertexNormal, halfwayVector), 0.0 ), 4.0*materialShininess);
+    vec3 specColor = lightColor  * pow(max( dot(viewVector, dirHalfwayVector), 0.0 ), 2*materialShininess);
 
     // spotlight - check if within cone
-    if(lightType == 2) {
-        float theta = dot(normalize(lightDir), -lightVector);
-        if( theta <= lightCutoff ) {
-            specColor = vec3(0.0, 0.0, 0.0);
-        }
+    float theta = dot(normalize(spotLightDir), - spotLightVector);
+    if( theta <= lightCutoff ) {
+        specColor += vec3(0.0, 0.0, 0.0);
+    }else{
+        vec3 spotHalfwayVector = reflect(spotLightVector, vertexNormal);
+        specColor += lightColor * pow(max( dot(viewVector, spotHalfwayVector), 0.0 ), 2*materialShininess);
     }
 
-    return specColor;
+    return specColor* materialSpecColor;
 }
 
 vec4 deform(){
@@ -87,7 +78,7 @@ vec4 deform(){
         float dotProd = dot(hitVec, vNormal);
         if(dotProd > 0){
             redOffset = 0.2*pow(dotProd,5);
-            vec3 offsetVec = pow(0.8,timeSince)*sin(timeSince)*hitVec*pow(dotProd,5);
+            vec3 offsetVec = pow(0.8,timeSince)*sin(timeSince*3)*hitVec*pow(dotProd,5);
             return vec4(vPos - offsetVec,1.0);
         }
     }

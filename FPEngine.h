@@ -105,7 +105,10 @@ private:
     /// \desc 2 - spot
     GLuint _lightType;
     /// \desc position of the light for point or spotlight
-    glm::vec3 _lightPos;
+    float spotLightSwingAngle = 0;
+    float spotLightDTheta = 0.01;
+    glm::vec3 _spotLightPos;
+    glm::vec3 _spotLightDir;
     /// \desc direction of the light for directional or spotlight
     glm::vec3 _lightDir;
     /// \desc angle of our spotlight
@@ -158,9 +161,11 @@ private:
         /// \desc camera position location
         GLint eyePos;
         /// \desc light position location - used for point/spot
-        GLint lightPos;
+        GLint spotLightPos;
+        /// \desc light position location - used for point/spot
+        GLint spotLightDir;
         /// \desc light direction location - used for directional/spot
-        GLint lightDir;
+        GLint dirLightDir;
         /// \desc light cone angle location - used for spot
         GLint lightCutoff;
         /// \desc color of the light location
