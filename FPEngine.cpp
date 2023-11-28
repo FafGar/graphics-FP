@@ -18,7 +18,7 @@
 
 Lab08Engine::Lab08Engine()
          : CSCI441::OpenGLEngine(4, 1,
-                                 640, 480,
+                                 960, 960,
                                  "FP: POOL HALL") {
 
     for(auto& _key : _keys) _key = GL_FALSE;
@@ -221,6 +221,17 @@ void Lab08Engine::mSetupBuffers() {
     testModel = new CSCI441::ModelLoader("models/shoe.obj");
     testModel->setAttributeLocations(_gouraudShaderProgramAttributeLocations.vPos, _gouraudShaderProgramAttributeLocations.vNormal);
 
+    poolGrass = new CSCI441::ModelLoader("models/poolgrass.obj");
+    poolGrass->setAttributeLocations(_gouraudShaderProgramAttributeLocations.vPos, _gouraudShaderProgramAttributeLocations.vNormal);
+
+    poolWood = new CSCI441::ModelLoader("models/poolwood.obj");
+    poolWood->setAttributeLocations(_gouraudShaderProgramAttributeLocations.vPos, _gouraudShaderProgramAttributeLocations.vNormal);
+
+    poolHoles = new CSCI441::ModelLoader("models/poolholes.obj");
+    poolHoles->setAttributeLocations(_gouraudShaderProgramAttributeLocations.vPos, _gouraudShaderProgramAttributeLocations.vNormal);
+
+    mines = new CSCI441::ModelLoader("models/mines.obj");
+    mines->setAttributeLocations(_gouraudShaderProgramAttributeLocations.vPos, _gouraudShaderProgramAttributeLocations.vNormal);
 
     // ------------------------------------------------------------------------------------------------------
     // generate all of our VAO/VBO/IBO descriptors
@@ -369,15 +380,32 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     // use the gouraud shader
     _gouraudShaderProgram->useProgram();
 
-    // _setMaterialProperties(CSCI441::Materials::RUBY);
-    // modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 10, -4));
-    // _computeAndSendTransformationMatrices( _gouraudShaderProgram,
-    //                                         modelMatrix, viewMtx, projMtx,
-    //                                         _gouraudShaderProgramUniformLocations.mvpMatrix,
-    //                                         _gouraudShaderProgramUniformLocations.modelMatrix,
-    //                                         _gouraudShaderProgramUniformLocations.normalMatrix);
+     modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+     modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1,0.1,0.1));
+     _computeAndSendTransformationMatrices( _gouraudShaderProgram,
+                                             modelMatrix, viewMtx, projMtx,
+                                             _gouraudShaderProgramUniformLocations.mvpMatrix,
+                                             _gouraudShaderProgramUniformLocations.modelMatrix,
+                                             _gouraudShaderProgramUniformLocations.normalMatrix);
 
     // testModel->draw(_gouraudShaderProgram->getShaderProgramHandle());
+    _setMaterialProperties(CSCI441::Materials::EMERALD);
+    poolGrass->draw(_gouraudShaderProgram->getShaderProgramHandle());
+    _setMaterialProperties(CSCI441::Materials::RUBY);
+    poolWood->draw(_gouraudShaderProgram->getShaderProgramHandle());
+    _setMaterialProperties(CSCI441::Materials::BLACK_RUBBER);
+    poolHoles->draw(_gouraudShaderProgram->getShaderProgramHandle());
+
+    glm::mat4 minesMTX = glm::mat4(1.0f);
+    minesMTX = glm::translate(glm::mat4(1.0f), glm::vec3(0, -20, 0));
+    _computeAndSendTransformationMatrices( _gouraudShaderProgram,
+                                           minesMTX, viewMtx, projMtx,
+                                           _gouraudShaderProgramUniformLocations.mvpMatrix,
+                                           _gouraudShaderProgramUniformLocations.modelMatrix,
+                                           _gouraudShaderProgramUniformLocations.normalMatrix);
+
+    _setMaterialProperties(CSCI441::Materials::WHITE_RUBBER);
+    mines->draw(_gouraudShaderProgram->getShaderProgramHandle());
     //***************************************************************************
     // draw the ground
 

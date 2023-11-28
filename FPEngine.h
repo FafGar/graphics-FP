@@ -44,9 +44,10 @@ public:
 private:
     //Model Things
     CSCI441::ModelLoader *testModel;
-    
-
-
+    CSCI441::ModelLoader *poolGrass;
+    CSCI441::ModelLoader *poolWood;
+    CSCI441::ModelLoader *poolHoles;
+    CSCI441::ModelLoader *mines;
 
     //***************************************************************************
     // Engine Setup
@@ -139,7 +140,6 @@ private:
     /// \param [in] ibo IBO descriptor to bind
     /// \param [out] numVAOPoints sets the number of vertices that make up the IBO array
     void _createPlatform(GLuint vao, GLuint vbo, GLuint ibo, GLsizei &numVAOPoints) const;
-
 
     //***************************************************************************
     // Shader Program Information
