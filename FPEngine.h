@@ -118,7 +118,10 @@ private:
     //***************************************************************************
     // VAO & Object Information
 
-    /// \desc total number of VAOs in our scene
+    float meterHeight = 0.1;
+    float meterStep = -0.01;
+    int cueState = 0; // 0: nothing happening, 1: angle chosen, 2: FIRE!
+
     static constexpr GLuint NUM_VAOS = 3;
     /// \desc used to index through our VAO/VBO/IBO array to give named access
     enum VAO_ID {

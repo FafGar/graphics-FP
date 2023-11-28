@@ -30,7 +30,7 @@ Lab08Engine::Lab08Engine()
 void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
     if(key != GLFW_KEY_UNKNOWN)
         _keys[key] = ((action == GLFW_PRESS) || (action == GLFW_REPEAT));
-
+    
     if(action == GLFW_PRESS) {
         switch( key ) {
             // quit!
@@ -56,9 +56,16 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
             
             case GLFW_KEY_H:
                 if(_goofyShaderProgram){
-                    glm::vec3 hitVec = _pArcballCam->getPosition() - _pArcballCam->getLookAtPoint();
-                    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.hitVector, glm::normalize(hitVec));
-                    glfwSetTime(0);
+                    cueState++;
+
+                    if(cueState == 2){
+                            glm::vec3 hitVec = _pArcballCam->getPosition() - _pArcballCam->getLookAtPoint();
+                            _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.hitVector, glm::normalize(hitVec));
+                            glfwSetTime(0);
+                    }
+                    
+
+                    if(cueState >1) cueState = 0;
                 }
                 break;
             default: break; // suppress CLion warning
@@ -89,9 +96,11 @@ void Lab08Engine::handleCursorPositionEvent(glm::vec2 currMousePosition) {
         }
         // otherwise, update our camera angles theta & phi
         else {
+            if(cueState != 1){
             // rotate the camera by the distance the mouse moved
             _pArcballCam->rotate((currMousePosition.x - _mousePosition.x) * 0.005f,
                                 (_mousePosition.y - currMousePosition.y) * 0.005f);
+            }
         }
 
         // ensure shader program is not null
@@ -440,6 +449,16 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     CSCI441::drawSolidSphere(2,20,20);
 
     _flatShaderProgram->useProgram();
+    
+    if(cueState == 1){
+        modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(0,-0.85,0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(meterHeight,0.4,1));
+
+        _computeAndSendTransformationMatrices(_flatShaderProgram,modelMatrix,glm::mat4(1.f),glm::mat4(1.f),_flatShaderProgramUniformLocations.mvpMatrix);
+        CSCI441::drawSolidCube(0.25);
+    }
+
     modelMatrix = glm::mat4(1.0f);
     _computeAndSendTransformationMatrices(_flatShaderProgram,
                                           modelMatrix, viewMtx, projMtx,
@@ -479,13 +498,15 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
 void Lab08Engine::_updateScene() {
     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.timeSince, (float)glfwGetTime());
 
-    // spotLightSwingAngle += spotLightDTheta;
+    spotLightSwingAngle += spotLightDTheta;
     if(fabs(spotLightSwingAngle) > M_PI_4 ) spotLightDTheta = -spotLightDTheta;
-    // _spotLightPos.z = glm::sin(spotLightSwingAngle);
+    _spotLightPos.z = glm::sin(spotLightSwingAngle);
     _spotLightDir = glm::vec3(0,-glm::cos(spotLightSwingAngle),glm::sin(spotLightSwingAngle));
     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.spotLightPos, _spotLightPos);
     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.spotLightPos, _spotLightDir);
 
+    meterHeight += meterStep;
+    if(meterHeight > 2 || meterHeight < 0.1) meterStep = -meterStep;
 }
 
 void Lab08Engine::run() {
