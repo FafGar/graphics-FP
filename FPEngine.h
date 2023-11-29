@@ -7,6 +7,7 @@
 #include <CSCI441/OpenGLEngine.hpp>
 #include <CSCI441/ShaderProgram.hpp>
 #include <CSCI441/ModelLoader.hpp>
+#include <CSCI441/TextureUtils.hpp>
 
 class Lab08Engine final : public CSCI441::OpenGLEngine {
 public:
@@ -231,7 +232,7 @@ private:
         GLint vNormal;
     } _gouraudShaderProgramAttributeLocations;
 
-    /// \desc shader program that performs flat shading of a single color
+    /// \desc shader program that performs flat shading of a textiir
     CSCI441::ShaderProgram* _flatShaderProgram;
     struct FlatShaderProgramUniformLocations {
         /// \desc precomputed MVP matrix location
@@ -239,6 +240,27 @@ private:
         /// \desc the color to apply location
         GLint color;
     } _flatShaderProgramUniformLocations;
+
+    CSCI441::ShaderProgram* _textureShader;
+    struct TextureShaderProgramUniformLocations {
+        GLint mvpMatrix;
+        GLint diffuseMap;
+        GLint colorTint;
+    } _textureShaderProgramUniform;
+
+    struct TextureShaderProgramAttributeLocations {
+        GLint vPos;
+        GLint vNormal;
+        GLint vTexCoord;
+    } _textureShaderProgramAttribute;
+
+    struct VertexTextured {
+        GLfloat x, y, z;
+        GLfloat s, t;
+    };
+
+    GLuint _skyHandle;
+    GLuint _minesHandle;
 
     //***************************************************************************
     // Private Helper Functions

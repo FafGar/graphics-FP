@@ -99,8 +99,7 @@ void Lab08Engine::handleCursorPositionEvent(glm::vec2 currMousePosition) {
             if(cueState != 1){
             // rotate the camera by the distance the mouse moved
             _pArcballCam->rotate((currMousePosition.x - _mousePosition.x) * 0.005f,
-                                (_mousePosition.y - currMousePosition.y) * 0.005f);
-            }
+                                (_mousePosition.y - currMousePosition.y) * -0.005f);
         }
 
         // ensure shader program is not null
@@ -112,10 +111,6 @@ void Lab08Engine::handleCursorPositionEvent(glm::vec2 currMousePosition) {
             // set the eye position - needed for specular reflection
             _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.eyePos, _pArcballCam->getPosition());
         }
-    }
-    // passive motion
-    else {
-
     }
 
     // update the mouse position
@@ -213,20 +208,31 @@ void Lab08Engine::mSetupShaders() {
     // NOTE: we do not query an attribute locations because in our shader we have set the locations to be the same as
     // the Gouraud Shader attribute locations
 
-    // hook up the CSCI441 object library to our shader program - MUST be done after the shader is used and before the objects are drawn
-    // if we have multiple shaders the flow would be:
-    //      1) shader->useProgram()
-    //      2) CSCI441::setVertexAttributeLocations()
-    //      3) CSCI441::draw*()
-    // OR the alternative is to ensure that all of your shader programs use the
-    // same attribute locations for the vertex position, normal, and texture coordinate
-    // as this lab is doing
-    CSCI441::setVertexAttributeLocations(_gouraudShaderProgramAttributeLocations.vPos,
-                                         _gouraudShaderProgramAttributeLocations.vNormal,
-                                         -1 );
+
 }
 
 void Lab08Engine::mSetupBuffers() {
+
+    //flat with texture for skybox
+    _textureShader = new CSCI441::ShaderProgram("shaders/textureShader.v.glsl", "shaders/textureShader.f.glsl" );
+
+    _textureShaderProgramUniform.mvpMatrix    = _textureShader->getUniformLocation("mvpMatrix");
+    _textureShaderProgramUniform.diffuseMap   = _textureShader->getUniformLocation("diffuseMap");
+    _textureShaderProgramUniform.colorTint    = _textureShader->getUniformLocation("colorTint");
+
+    _textureShaderProgramAttribute.vPos       = _textureShader->getAttributeLocation("vPos");
+    _textureShaderProgramAttribute.vNormal       = _textureShader->getAttributeLocation("vNormal");
+    _textureShaderProgramAttribute.vTexCoord  = _textureShader->getAttributeLocation("inTexCoord");
+
+    _textureShader->setProgramUniform( _textureShaderProgramUniform.diffuseMap, 0 );
+
+    glEnableVertexAttribArray( _textureShaderProgramAttribute.vPos );
+    glVertexAttribPointer( _textureShaderProgramAttribute.vPos, 3, GL_FLOAT, GL_FALSE, sizeof(VertexTextured), (void*) 0 );
+
+    glEnableVertexAttribArray( _textureShaderProgramAttribute.vTexCoord );
+    glVertexAttribPointer( _textureShaderProgramAttribute.vTexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(VertexTextured), (void*) (sizeof(GLfloat) * 3) );
+
+    //models
     testModel = new CSCI441::ModelLoader("models/shoe.obj");
     testModel->setAttributeLocations(_gouraudShaderProgramAttributeLocations.vPos, _gouraudShaderProgramAttributeLocations.vNormal);
 
@@ -239,8 +245,10 @@ void Lab08Engine::mSetupBuffers() {
     poolHoles = new CSCI441::ModelLoader("models/poolholes.obj");
     poolHoles->setAttributeLocations(_gouraudShaderProgramAttributeLocations.vPos, _gouraudShaderProgramAttributeLocations.vNormal);
 
-    mines = new CSCI441::ModelLoader("models/mines.obj");
-    mines->setAttributeLocations(_gouraudShaderProgramAttributeLocations.vPos, _gouraudShaderProgramAttributeLocations.vNormal);
+    mines = new CSCI441::ModelLoader();
+    mines->loadModelFile("models/maps2.obj");
+    //mines->loadModelFile("models/suzanne.obj");
+    mines->setAttributeLocations(_textureShaderProgramAttribute.vPos, _textureShaderProgramAttribute.vNormal, _textureShaderProgramAttribute.vTexCoord);
 
     // ------------------------------------------------------------------------------------------------------
     // generate all of our VAO/VBO/IBO descriptors
@@ -251,6 +259,7 @@ void Lab08Engine::mSetupBuffers() {
     // ------------------------------------------------------------------------------------------------------
     // create the platform
     _createPlatform(_vaos[VAO_ID::PLATFORM], _vbos[VAO_ID::PLATFORM], _ibos[VAO_ID::PLATFORM], _numVAOPoints[VAO_ID::PLATFORM]);
+
 
 }
 
@@ -338,6 +347,9 @@ void Lab08Engine::mSetupScene() {
     // set flat shading color
     glm::vec3 flatColor(1.0f, 1.0f, 1.0f);
     _flatShaderProgram->setProgramUniform(_flatShaderProgramUniformLocations.color, flatColor);
+
+    _skyHandle = CSCI441::TextureUtils::loadAndRegisterTexture("textures/minesskyrev.png");
+    _minesHandle = CSCI441::TextureUtils::loadAndRegisterTexture("textures/mines.png");
 }
 
 //*************************************************************************************
@@ -384,11 +396,33 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
         return;
     }
 
+    //PANO
+    glm::mat4 skyboxpos = glm::translate(glm::mat4(1.0), glm::vec3(0,0,0));
+    skyboxpos = glm::rotate(skyboxpos, (float)(90.0 * (3.1415 / 180.0)), glm::vec3(0.0,1.0,0.0));
+    glm::mat4 mvpMtx = projMtx * viewMtx * skyboxpos;
+    _textureShader->useProgram();
+    CSCI441::setVertexAttributeLocations(_textureShaderProgramAttribute.vPos, -1, _textureShaderProgramAttribute.vTexCoord);
+    _textureShader->setProgramUniform(_textureShaderProgramUniform.mvpMatrix, mvpMtx);
+    _textureShader->setProgramUniform(_textureShaderProgramUniform.colorTint, glm::vec3(1,1,1));
+    glBindTexture( GL_TEXTURE_2D, _skyHandle);
+
+    CSCI441::drawSolidSphere(800,64,32);
+
+    //MINES
+    glm::mat4 minesPos = glm::translate(glm::mat4(1.0), glm::vec3(0,-25,0));
+    mvpMtx = projMtx * viewMtx * minesPos;
+    _textureShader->setProgramUniform(_textureShaderProgramUniform.mvpMatrix, mvpMtx);
+    glBindTexture( GL_TEXTURE_2D, _minesHandle);
+    mines->draw(_textureShader->getShaderProgramHandle());
+
+
     glm::mat4 modelMatrix = glm::mat4(1.0f);
 
     // use the gouraud shader
     _gouraudShaderProgram->useProgram();
+    CSCI441::setVertexAttributeLocations(_gouraudShaderProgramAttributeLocations.vPos, _gouraudShaderProgramAttributeLocations.vNormal, -1);
 
+    //draw pool table
      modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
      modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1,0.1,0.1));
      _computeAndSendTransformationMatrices( _gouraudShaderProgram,
@@ -397,24 +431,13 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
                                              _gouraudShaderProgramUniformLocations.modelMatrix,
                                              _gouraudShaderProgramUniformLocations.normalMatrix);
 
-    // testModel->draw(_gouraudShaderProgram->getShaderProgramHandle());
-    _setMaterialProperties(CSCI441::Materials::EMERALD);
+    _setMaterialProperties(CSCI441::Materials::GREEN_RUBBER);
     poolGrass->draw(_gouraudShaderProgram->getShaderProgramHandle());
     _setMaterialProperties(CSCI441::Materials::RUBY);
     poolWood->draw(_gouraudShaderProgram->getShaderProgramHandle());
     _setMaterialProperties(CSCI441::Materials::BLACK_RUBBER);
     poolHoles->draw(_gouraudShaderProgram->getShaderProgramHandle());
 
-    glm::mat4 minesMTX = glm::mat4(1.0f);
-    minesMTX = glm::translate(glm::mat4(1.0f), glm::vec3(0, -20, 0));
-    _computeAndSendTransformationMatrices( _gouraudShaderProgram,
-                                           minesMTX, viewMtx, projMtx,
-                                           _gouraudShaderProgramUniformLocations.mvpMatrix,
-                                           _gouraudShaderProgramUniformLocations.modelMatrix,
-                                           _gouraudShaderProgramUniformLocations.normalMatrix);
-
-    _setMaterialProperties(CSCI441::Materials::WHITE_RUBBER);
-    mines->draw(_gouraudShaderProgram->getShaderProgramHandle());
     //***************************************************************************
     // draw the ground
 
