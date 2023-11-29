@@ -96,10 +96,11 @@ void Lab08Engine::handleCursorPositionEvent(glm::vec2 currMousePosition) {
         }
         // otherwise, update our camera angles theta & phi
         else {
-            if(cueState != 1){
-            // rotate the camera by the distance the mouse moved
-            _pArcballCam->rotate((currMousePosition.x - _mousePosition.x) * 0.005f,
-                                (_mousePosition.y - currMousePosition.y) * -0.005f);
+            if(cueState != 1) {
+                // rotate the camera by the distance the mouse moved
+                _pArcballCam->rotate((currMousePosition.x - _mousePosition.x) * 0.005f,
+                                     (_mousePosition.y - currMousePosition.y) * -0.005f);
+            }
         }
 
         // ensure shader program is not null
@@ -120,14 +121,14 @@ void Lab08Engine::handleCursorPositionEvent(glm::vec2 currMousePosition) {
 void Lab08Engine::handleScrollEvent(glm::vec2 offset) {
     // update the camera radius in/out
     GLfloat totChgSq = offset.y;
-    _pArcballCam->moveForward(totChgSq * 0.2f );
+    _pArcballCam->moveForward(totChgSq * 1.0f );
 }
 
 //*************************************************************************************
 //
 // Engine Setup
 
-void Lab08Engine::mSetupGLFW() {
+void Lab08Engine::mSetupGLFW(){
     CSCI441::OpenGLEngine::mSetupGLFW();
 
     // set our callbacks
@@ -207,7 +208,6 @@ void Lab08Engine::mSetupShaders() {
     _flatShaderProgramUniformLocations.color                 = _flatShaderProgram->getUniformLocation("color");
     // NOTE: we do not query an attribute locations because in our shader we have set the locations to be the same as
     // the Gouraud Shader attribute locations
-
 
 }
 
