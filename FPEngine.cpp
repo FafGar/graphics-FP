@@ -462,14 +462,15 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     _goofyShaderProgram->useProgram();
 
     _setMaterialProperties(CSCI441::Materials::WHITE_PLASTIC);
-    modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 2, 0));
+    modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 3, 0));
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2,0.2, 0.2));
     _computeAndSendTransformationMatrices( _goofyShaderProgram,
                                             modelMatrix, viewMtx, projMtx,
                                             _goofyShaderProgramUniformLocations.mvpMatrix,
                                             _goofyShaderProgramUniformLocations.modelMatrix,
                                             _goofyShaderProgramUniformLocations.normalMatrix);
 
-    CSCI441::drawSolidSphere(2,20,20);
+    CSCI441::drawSolidSphere(1,20,20);
 
     _flatShaderProgram->useProgram();
     

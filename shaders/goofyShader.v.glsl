@@ -23,7 +23,12 @@ layout(location = 0) in vec3 vPos;      // the position of this specific vertex 
 layout(location = 1) in vec3 vNormal;   // the normal of this specific vertex in object space
 
 // varying outputs
-layout(location = 0) out vec4 color;    // color to apply to this vertex
+layout(location = 0) out vec3 color;    // color to apply to this vertex
+layout(location = 1) out vec3 normalVec; 
+layout(location = 2) out vec3 dirLightVec; 
+layout(location = 3) out vec3 spotLightVec; 
+layout(location = 4) out vec3 dirHalfwayVec; 
+layout(location = 5) out vec3 spotHalfwayVec; 
 
 //global variable because I'm lazy
 float redOffset;
@@ -94,12 +99,18 @@ void main() {
     vec3 vPosWorld = (modelMatrix * vec4(vPos, 1.0)).xyz;
     vec3 nVecWorld = normalize( normalMtx * vNormal );
 
-    // compute each component of the Phong Illumination Model
-    vec3 diffColor = diffuseColor(vPosWorld, nVecWorld);
-    vec3 specColor = specularColor(vPosWorld, nVecWorld);
-    vec3 ambColor = lightColor * materialAmbColor;
+    // // compute each component of the Phong Illumination Model
+    // vec3 diffColor = diffuseColor(vPosWorld, nVecWorld);
+    // vec3 specColor = specularColor(vPosWorld, nVecWorld);
+    // vec3 ambColor = lightColor * materialAmbColor;
 
     // assign the final color for this vertex
-    diffColor.r+=redOffset;
-    color = vec4(diffColor + specColor + ambColor, 1.0f);
+    // diffColor.r+=redOffset;
+    color = materialSpecColor;
+
+    normalVec = nVecWorld;
+    dirLightVec = normalize( -dirLightDir );
+    spotLightVec = -normalize(spotLightPos - vPosWorld);
+    dirHalfwayVec = normalize(dirLightVec + eyePos);
+    spotHalfwayVec = normalize(spotLightVec + eyePos);
 }
