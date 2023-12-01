@@ -300,6 +300,117 @@ void Lab08Engine::_createPlatform(GLuint vao, GLuint vbo, GLuint ibo, GLsizei &n
     fprintf( stdout, "[INFO]: platform read in with VAO/VBO/IBO %d/%d/%d & %d points\n", vao, vbo, ibo, numVAOPoints );
 }
 
+void Lab08Engine::addBall(float x, float y){
+    Ball* newBall = new Ball(x, y, 0.25, 0);
+    balls.emplace_back(newBall);
+}
+
+void Lab08Engine::physics(float delta) const {
+
+    delta = 0.1;
+    float left = -8;
+    float right = 8;
+    float down = -4;
+    float up = 4;
+
+    for(int i = 0; i<balls.size(); i++){
+        Ball* ball = balls[i];
+
+        ball->x += ball->vx * delta;
+        ball->y += ball->vy * delta;
+
+        float fric = 1 - (0.5 * delta);
+        fric = 0.999;
+        ball->vx *= fric;
+        ball->vy *= fric;
+
+        if(ball->vx * ball->vx + ball->vy * ball->vy){
+            ball->moving = true;
+        }else {
+            ball->vx = 0;
+            ball->vy = 0;
+        }
+
+        for(int j = i; j<balls.size(); j++){
+            Ball* ball2 = balls[j];
+
+            float collideRadius = ball->r + ball2->r;
+
+            if(i<j && (ball->moving || ball2->moving) && glm::distance(glm::vec2(ball->x, ball->y), glm::vec2(ball2->x, ball2->y)) < collideRadius){
+                hit(i,j);
+                std::cout << "hit" << std::endl;
+            }
+        }
+
+        if(ball->moving){
+            float bounce = -0.9;
+            if(ball->x < (left + ball->r)){
+                ball->vx *= bounce;
+                ball->x = (left + ball->r);
+            }else if(ball->x > (right - ball->r)){
+                ball->vx *= bounce;
+                ball->x = (right - ball->r);
+            }
+
+            if(ball->y < (down - ball->r)){
+                ball->vy *= bounce;
+                ball->y = (down - ball->r);
+            }else if(ball->y > (up + ball->r)){
+                ball->vy *= bounce;
+                ball->y = (up + ball->r);
+            }
+        }
+
+    }
+}
+
+void Lab08Engine::hit(int i, int j) const{
+    Ball* ball = balls[i];
+    Ball* ball2 = balls[j];
+
+    float diffX = ball2->x - ball->x;
+    float diffY = ball2->y - ball->y;
+
+    float dist = glm::distance(glm::vec2(ball->x, ball->y), glm::vec2(ball2->x, ball2->y));
+
+    float normalX = diffX / dist;
+    float normalY = diffY / dist;
+
+    float velDeltaX = ball->vx-ball2->vx;
+    float velDeltaY = ball->vy-ball2->vy;
+    float velDelta = sqrt(velDeltaX * velDeltaX + velDeltaY * velDeltaY);
+
+    float dot = velDeltaX * normalX + velDeltaY * normalY;
+
+    if(dot > 0){
+        float coefficient = -0.5;
+        float impulseStrength = (1 + coefficient) * dot * 2;
+        float impulseX = impulseStrength * normalX;
+        float impulseY = impulseStrength * normalY;
+        ball->vx = ball->vx - impulseX;
+        ball->vy = ball->vy - impulseY;
+        ball2->vx = ball2->vx + impulseX;
+        ball2->vy = ball2->vy + impulseY;
+        ball->moving = true;
+        ball2->moving = true;
+    }
+}
+
+void Lab08Engine::drawBalls(glm::mat4 viewMtx, glm::mat4 projMtx) const{
+    for( const Ball* ball : balls ){
+        _setMaterialProperties(CSCI441::Materials::WHITE_PLASTIC);
+        glm::mat4 modelMatrix;
+        modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(ball->x, ball->r, ball->y));
+        //modelMatrix = modelMatrix*ball.rot;
+        _computeAndSendTransformationMatrices( _goofyShaderProgram,
+                                               modelMatrix, viewMtx, projMtx,
+                                               _goofyShaderProgramUniformLocations.mvpMatrix,
+                                               _goofyShaderProgramUniformLocations.modelMatrix,
+                                               _goofyShaderProgramUniformLocations.normalMatrix);
+
+        CSCI441::drawSolidSphere(ball->r,20,20);
+    }
+}
 
 void Lab08Engine::mSetupTextures() {
     // unused in this lab
@@ -354,6 +465,16 @@ void Lab08Engine::mSetupScene() {
 
     _skyHandle = CSCI441::TextureUtils::loadAndRegisterTexture("textures/minesskyrev.png");
     _minesHandle = CSCI441::TextureUtils::loadAndRegisterTexture("textures/mines.png");
+
+    addBall(0,0);
+    addBall(3,0.1);
+    addBall(-1,-1);
+
+    balls[0]->vx = 1.0;
+    balls[1]->vx = -0.5;
+
+    balls[2]->vx = -0.5;
+    balls[2]->vy = -0.5;
 }
 
 //*************************************************************************************
@@ -413,7 +534,7 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     CSCI441::drawSolidSphere(800,64,32);
 
     //MINES
-    glm::mat4 minesPos = glm::translate(glm::mat4(1.0), glm::vec3(0,-25,0));
+    glm::mat4 minesPos = glm::translate(glm::mat4(1.0), glm::vec3(0,-30,0));
     mvpMtx = projMtx * viewMtx * minesPos;
     _textureShader->setProgramUniform(_textureShaderProgramUniform.mvpMatrix, mvpMtx);
     glBindTexture( GL_TEXTURE_2D, _minesHandle);
@@ -456,6 +577,8 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
                                             _goofyShaderProgramUniformLocations.normalMatrix);
 
     CSCI441::drawSolidSphere(1,20,20);
+
+    drawBalls(viewMtx, projMtx);
 
     _flatShaderProgram->useProgram();
     
@@ -519,6 +642,8 @@ void Lab08Engine::_updateScene() {
 
     meterHeight += meterStep;
     if(meterHeight > 2 || meterHeight < 0.1) meterStep = -meterStep;
+
+    physics(0.01);
 }
 
 void Lab08Engine::run() {
@@ -631,4 +756,15 @@ void lab08_scroll_callback(GLFWwindow *window, double xOffset, double yOffset) {
         // pass the scroll offset through to the engine
         engine->handleScrollEvent(glm::vec2(xOffset, yOffset));
     }
+}
+
+Lab08Engine::Ball::Ball(float x, float y, float r, int tex) {
+    this->x = x;
+    this->y = y;
+    this->vx = 0;
+    this->vy = 0;
+    this->r = r;
+    this->rot = glm::mat4(0);
+    this->tex = tex;
+    this->moving = true;
 }
