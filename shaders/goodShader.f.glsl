@@ -35,8 +35,11 @@ void main() {
             diffColor += lightColor  * max( dot(newNormal, spotLightVec), 0.0 );
         }
         
-        fragColorOut = vec4(materialAmbColor + 
-                            materialDiffColor * diffColor + 
-                            materialSpecColor * specular ,1.0);
+        fragColorOut = vec4(materialAmbColor+
+                            materialDiffColor * diffColor+
+                            materialSpecColor * specular ,1.0
+                            );
+    }    else {
+        fragColorOut = vec4(0);
     }
 }

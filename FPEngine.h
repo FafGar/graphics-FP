@@ -194,9 +194,13 @@ private:
     } _goofyShaderProgramAttributeLocations;
 
     /// \desc shader program that performs Gouraud Shading with the Phong Illumination Model
-    CSCI441::ShaderProgram* _gouraudShaderProgram;
+    CSCI441::ShaderProgram* _goodShaderProgram;
     /// \desc stores the locations of all of our shader uniforms
     struct GouraudShaderProgramUniformLocations {
+       /// \desc vector in the direction of the incoming hit
+        GLfloat hitVector;
+        /// \desc time since hit. Used for animated movement
+        GLfloat timeSince;
         /// \desc precomputed MVP matrix location
         GLint mvpMatrix;
         /// \desc model matrix location
@@ -206,9 +210,11 @@ private:
         /// \desc camera position location
         GLint eyePos;
         /// \desc light position location - used for point/spot
-        GLint lightPos;
+        GLint spotLightPos;
+        /// \desc light position location - used for point/spot
+        GLint spotLightDir;
         /// \desc light direction location - used for directional/spot
-        GLint lightDir;
+        GLint dirLightDir;
         /// \desc light cone angle location - used for spot
         GLint lightCutoff;
         /// \desc color of the light location
@@ -223,14 +229,14 @@ private:
         GLint materialShininess;
         /// \desc material ambient color location
         GLint materialAmbColor;
-    } _gouraudShaderProgramUniformLocations;
+    } _goodShaderProgramUniformLocations;
     /// \desc stores the locations of all of our shader attributes
     struct GouraudShaderProgramAttributeLocations {
         /// \desc vertex position location
         GLint vPos;
         /// \desc vertex normal location
         GLint vNormal;
-    } _gouraudShaderProgramAttributeLocations;
+    } _goodShaderProgramAttributeLocations;
 
     /// \desc shader program that performs flat shading of a textiir
     CSCI441::ShaderProgram* _flatShaderProgram;

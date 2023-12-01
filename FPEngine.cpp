@@ -46,8 +46,8 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
                 _lightType = key - GLFW_KEY_1; // GLFW_KEY_1 is 49.  they go in sequence from there
 
                 // ensure shader program is not null
-                if(_gouraudShaderProgram) {
-                    _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.lightType, _lightType );
+                if(_goodShaderProgram) {
+                    _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.lightType, _lightType );
                 }
                 if(_goofyShaderProgram) {
                     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.lightType, _lightType );
@@ -104,9 +104,9 @@ void Lab08Engine::handleCursorPositionEvent(glm::vec2 currMousePosition) {
         }
 
         // ensure shader program is not null
-        if(_gouraudShaderProgram) {
+        if(_goodShaderProgram) {
             // set the eye position - needed for specular reflection
-            _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.eyePos, _pArcballCam->getPosition());
+            _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.eyePos, _pArcballCam->getPosition());
         }
         if(_goofyShaderProgram) {
             // set the eye position - needed for specular reflection
@@ -180,24 +180,25 @@ void Lab08Engine::mSetupShaders() {
     //***************************************************************************
     // Setup Gouraud Shader Program
 
-    _gouraudShaderProgram = new CSCI441::ShaderProgram( "shaders/gouraudShader.v.glsl", "shaders/gouraudShader.f.glsl" );
+    _goodShaderProgram = new CSCI441::ShaderProgram( "shaders/goodShader.v.glsl", "shaders/goodShader.f.glsl" );
     // get uniform locations
-    _gouraudShaderProgramUniformLocations.mvpMatrix           = _gouraudShaderProgram->getUniformLocation("mvpMatrix");
-    _gouraudShaderProgramUniformLocations.modelMatrix         = _gouraudShaderProgram->getUniformLocation("modelMatrix");
-    _gouraudShaderProgramUniformLocations.normalMatrix        = _gouraudShaderProgram->getUniformLocation("normalMtx");
-    _gouraudShaderProgramUniformLocations.eyePos              = _gouraudShaderProgram->getUniformLocation("eyePos");
-    _gouraudShaderProgramUniformLocations.lightPos            = _gouraudShaderProgram->getUniformLocation("lightPos");
-    _gouraudShaderProgramUniformLocations.lightDir            = _gouraudShaderProgram->getUniformLocation("lightDir");
-    _gouraudShaderProgramUniformLocations.lightCutoff         = _gouraudShaderProgram->getUniformLocation("lightCutoff");
-    _gouraudShaderProgramUniformLocations.lightColor          = _gouraudShaderProgram->getUniformLocation("lightColor");
-    _gouraudShaderProgramUniformLocations.lightType           = _gouraudShaderProgram->getUniformLocation("lightType");
-    _gouraudShaderProgramUniformLocations.materialDiffColor   = _gouraudShaderProgram->getUniformLocation("materialDiffColor");
-    _gouraudShaderProgramUniformLocations.materialSpecColor   = _gouraudShaderProgram->getUniformLocation("materialSpecColor");
-    _gouraudShaderProgramUniformLocations.materialShininess   = _gouraudShaderProgram->getUniformLocation("materialShininess");
-    _gouraudShaderProgramUniformLocations.materialAmbColor    = _gouraudShaderProgram->getUniformLocation("materialAmbColor");
+    _goodShaderProgramUniformLocations.mvpMatrix           = _goodShaderProgram->getUniformLocation("mvpMatrix");
+    _goodShaderProgramUniformLocations.modelMatrix         = _goodShaderProgram->getUniformLocation("modelMatrix");
+    _goodShaderProgramUniformLocations.normalMatrix        = _goodShaderProgram->getUniformLocation("normalMtx");
+    _goodShaderProgramUniformLocations.eyePos              = _goodShaderProgram->getUniformLocation("eyePos");
+    _goodShaderProgramUniformLocations.spotLightPos            = _goodShaderProgram->getUniformLocation("spotLightPos");
+    _goodShaderProgramUniformLocations.spotLightDir            = _goodShaderProgram->getUniformLocation("spotLightDir");
+    _goodShaderProgramUniformLocations.dirLightDir            = _goodShaderProgram->getUniformLocation("dirLightDir");
+    _goodShaderProgramUniformLocations.lightCutoff         = _goodShaderProgram->getUniformLocation("lightCutoff");
+    _goodShaderProgramUniformLocations.lightColor          = _goodShaderProgram->getUniformLocation("lightColor");
+    _goodShaderProgramUniformLocations.materialDiffColor   = _goodShaderProgram->getUniformLocation("materialDiffColor");
+    _goodShaderProgramUniformLocations.materialSpecColor   = _goodShaderProgram->getUniformLocation("materialSpecColor");
+    _goodShaderProgramUniformLocations.materialShininess   = _goodShaderProgram->getUniformLocation("materialShininess");
+    _goodShaderProgramUniformLocations.materialAmbColor    = _goodShaderProgram->getUniformLocation("materialAmbColor");
     // get attribute locations
-    _gouraudShaderProgramAttributeLocations.vPos              = _gouraudShaderProgram->getAttributeLocation("vPos");
-    _gouraudShaderProgramAttributeLocations.vNormal           = _gouraudShaderProgram->getAttributeLocation("vNormal");
+    _goodShaderProgramAttributeLocations.vPos              = _goodShaderProgram->getAttributeLocation("vPos");
+    _goodShaderProgramAttributeLocations.vNormal           = _goodShaderProgram->getAttributeLocation("vNormal");
+
 
     //***************************************************************************
     // Setup Flat Shader Program
@@ -234,16 +235,16 @@ void Lab08Engine::mSetupBuffers() {
 
     //models
     testModel = new CSCI441::ModelLoader("models/shoe.obj");
-    testModel->setAttributeLocations(_gouraudShaderProgramAttributeLocations.vPos, _gouraudShaderProgramAttributeLocations.vNormal);
+    testModel->setAttributeLocations(_goodShaderProgramAttributeLocations.vPos, _goodShaderProgramAttributeLocations.vNormal);
 
     poolGrass = new CSCI441::ModelLoader("models/poolgrass.obj");
-    poolGrass->setAttributeLocations(_gouraudShaderProgramAttributeLocations.vPos, _gouraudShaderProgramAttributeLocations.vNormal);
+    poolGrass->setAttributeLocations(_goodShaderProgramAttributeLocations.vPos, _goodShaderProgramAttributeLocations.vNormal);
 
     poolWood = new CSCI441::ModelLoader("models/poolwood.obj");
-    poolWood->setAttributeLocations(_gouraudShaderProgramAttributeLocations.vPos, _gouraudShaderProgramAttributeLocations.vNormal);
+    poolWood->setAttributeLocations(_goodShaderProgramAttributeLocations.vPos, _goodShaderProgramAttributeLocations.vNormal);
 
     poolHoles = new CSCI441::ModelLoader("models/poolholes.obj");
-    poolHoles->setAttributeLocations(_gouraudShaderProgramAttributeLocations.vPos, _gouraudShaderProgramAttributeLocations.vNormal);
+    poolHoles->setAttributeLocations(_goodShaderProgramAttributeLocations.vPos, _goodShaderProgramAttributeLocations.vNormal);
 
     mines = new CSCI441::ModelLoader();
     mines->loadModelFile("models/maps2.obj");
@@ -287,11 +288,11 @@ void Lab08Engine::_createPlatform(GLuint vao, GLuint vbo, GLuint ibo, GLsizei &n
     glBindBuffer( GL_ARRAY_BUFFER, vbo );
     glBufferData( GL_ARRAY_BUFFER, sizeof( platformVertices ), platformVertices, GL_STATIC_DRAW );
 
-    glEnableVertexAttribArray( _gouraudShaderProgramAttributeLocations.vPos );
-    glVertexAttribPointer(_gouraudShaderProgramAttributeLocations.vPos, 3, GL_FLOAT, GL_FALSE, sizeof(VertexNormalCoordinate), nullptr );
+    glEnableVertexAttribArray( _goodShaderProgramAttributeLocations.vPos );
+    glVertexAttribPointer(_goodShaderProgramAttributeLocations.vPos, 3, GL_FLOAT, GL_FALSE, sizeof(VertexNormalCoordinate), nullptr );
 
-    glEnableVertexAttribArray( _gouraudShaderProgramAttributeLocations.vNormal );
-    glVertexAttribPointer(_gouraudShaderProgramAttributeLocations.vNormal, 3, GL_FLOAT, GL_FALSE, sizeof(VertexNormalCoordinate), (void*) (sizeof(GLfloat) * 3) );
+    glEnableVertexAttribArray( _goodShaderProgramAttributeLocations.vNormal );
+    glVertexAttribPointer(_goodShaderProgramAttributeLocations.vNormal, 3, GL_FLOAT, GL_FALSE, sizeof(VertexNormalCoordinate), (void*) (sizeof(GLfloat) * 3) );
 
     glBindBuffer( GL_ELEMENT_ARRAY_BUFFER, ibo );
     glBufferData( GL_ELEMENT_ARRAY_BUFFER, sizeof( platformIndices ), platformIndices, GL_STATIC_DRAW );
@@ -306,7 +307,7 @@ void Lab08Engine::mSetupTextures() {
 
 void Lab08Engine::mSetupScene() {
     // if either shader program is null, do not continue any further to prevent run time errors
-    if(!_gouraudShaderProgram || !_flatShaderProgram) {
+    if(!_goodShaderProgram || !_flatShaderProgram) {
         return;
     }
 
@@ -317,7 +318,7 @@ void Lab08Engine::mSetupScene() {
     _pArcballCam->setPhi(1.9f);
     _pArcballCam->setRadius(15.0f);
     _pArcballCam->recomputeOrientation();
-    _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.eyePos, _pArcballCam->getPosition());
+    _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.eyePos, _pArcballCam->getPosition());
 
     // set up light info
     glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
@@ -328,11 +329,14 @@ void Lab08Engine::mSetupScene() {
     float lightCutoff = glm::cos(_lightAngle);
     _lightType = 0;
 
-    _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.lightColor, lightColor);
-    _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.lightPos, _spotLightPos);
-    _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.lightDir, _lightDir);
-    _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.lightCutoff, lightCutoff);
-    _gouraudShaderProgram->setProgramUniform(_gouraudShaderProgramUniformLocations.lightType, _lightType);
+    _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.lightColor, lightColor);
+    _goofyShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.spotLightPos, _spotLightPos);
+    _goofyShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.spotLightPos, _spotLightDir);
+    _goofyShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.dirLightDir, _lightDir);
+    _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.lightCutoff, lightCutoff);
+    _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.lightType, _lightType);
+
+    _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.eyePos, _pArcballCam->getPosition());
 
     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.lightColor, lightColor);
     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.spotLightPos, _spotLightPos);
@@ -358,7 +362,7 @@ void Lab08Engine::mSetupScene() {
 
 void Lab08Engine::mCleanupShaders() {
     fprintf( stdout, "[INFO]: ...deleting Shaders.\n" );
-    delete _gouraudShaderProgram;
+    delete _goodShaderProgram;
     delete _flatShaderProgram;
 }
 
@@ -392,7 +396,7 @@ void Lab08Engine::mCleanupScene() {
 
 void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     // if either shader program is null, do not continue any further to prevent run time errors
-    if(!_gouraudShaderProgram || !_flatShaderProgram) {
+    if(!_goodShaderProgram || !_flatShaderProgram) {
         return;
     }
 
@@ -419,50 +423,31 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     glm::mat4 modelMatrix = glm::mat4(1.0f);
 
     // use the gouraud shader
-    _gouraudShaderProgram->useProgram();
-    CSCI441::setVertexAttributeLocations(_gouraudShaderProgramAttributeLocations.vPos, _gouraudShaderProgramAttributeLocations.vNormal, -1);
+    _goodShaderProgram->useProgram();
+    CSCI441::setVertexAttributeLocations(_goodShaderProgramAttributeLocations.vPos, _goodShaderProgramAttributeLocations.vNormal, -1);
 
     //draw pool table
      modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
      modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1,0.1,0.1));
-     _computeAndSendTransformationMatrices( _gouraudShaderProgram,
+     _computeAndSendTransformationMatrices( _goodShaderProgram,
                                              modelMatrix, viewMtx, projMtx,
-                                             _gouraudShaderProgramUniformLocations.mvpMatrix,
-                                             _gouraudShaderProgramUniformLocations.modelMatrix,
-                                             _gouraudShaderProgramUniformLocations.normalMatrix);
+                                             _goodShaderProgramUniformLocations.mvpMatrix,
+                                             _goodShaderProgramUniformLocations.modelMatrix,
+                                             _goodShaderProgramUniformLocations.normalMatrix);
 
     _setMaterialProperties(CSCI441::Materials::GREEN_RUBBER);
-    poolGrass->draw(_gouraudShaderProgram->getShaderProgramHandle());
+    poolGrass->draw(_goodShaderProgram->getShaderProgramHandle());
     _setMaterialProperties(CSCI441::Materials::RUBY);
-    poolWood->draw(_gouraudShaderProgram->getShaderProgramHandle());
+    poolWood->draw(_goodShaderProgram->getShaderProgramHandle());
     _setMaterialProperties(CSCI441::Materials::BLACK_RUBBER);
-    poolHoles->draw(_gouraudShaderProgram->getShaderProgramHandle());
+    poolHoles->draw(_goodShaderProgram->getShaderProgramHandle());
 
-    //***************************************************************************
-    // draw the ground
 
-    // use the emerald material
-    // _setMaterialProperties(CSCI441::Materials::EMERALD);
-
-    // // draw a larger ground plane by translating a single quad across a grid
-    // const int GROUND_SIZE = 6;
-    // for(int i = -GROUND_SIZE; i <= GROUND_SIZE; i++) {
-    //     for(int j = -GROUND_SIZE; j <= GROUND_SIZE; j++) {
-    //         modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(i, 0, j));
-    //         _computeAndSendTransformationMatrices( _gouraudShaderProgram,
-    //                                                modelMatrix, viewMtx, projMtx,
-    //                                                _gouraudShaderProgramUniformLocations.mvpMatrix,
-    //                                                _gouraudShaderProgramUniformLocations.modelMatrix,
-    //                                                _gouraudShaderProgramUniformLocations.normalMatrix);
-    //         glBindVertexArray( _vaos[VAO_ID::PLATFORM] );
-    //         glDrawElements( GL_TRIANGLE_STRIP, _numVAOPoints[VAO_ID::PLATFORM], GL_UNSIGNED_SHORT, nullptr );
-    //     }
-    // }
     //DRAW THE CUE BALL
     _goofyShaderProgram->useProgram();
 
     _setMaterialProperties(CSCI441::Materials::WHITE_PLASTIC);
-    modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 3, 0));
+    modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.5, 0));
     modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2,0.2, 0.2));
     _computeAndSendTransformationMatrices( _goofyShaderProgram,
                                             modelMatrix, viewMtx, projMtx,
@@ -529,6 +514,9 @@ void Lab08Engine::_updateScene() {
     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.spotLightPos, _spotLightPos);
     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.spotLightPos, _spotLightDir);
 
+    _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.spotLightPos, _spotLightPos);
+    _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.spotLightPos, _spotLightDir);
+
     meterHeight += meterStep;
     if(meterHeight > 2 || meterHeight < 0.1) meterStep = -meterStep;
 }
@@ -568,12 +556,12 @@ void Lab08Engine::run() {
 
 void Lab08Engine::_setMaterialProperties(CSCI441::Materials::Material material) const {
     // ensure our shader program is not null
-    if(_gouraudShaderProgram) {
+    if(_goodShaderProgram) {
         // set the D, S, A, & shininess components of the material to our Gouraud Shader
-        glProgramUniform3fv( _gouraudShaderProgram->getShaderProgramHandle(), _gouraudShaderProgramUniformLocations.materialDiffColor, 1, material.diffuse   );
-        glProgramUniform3fv( _gouraudShaderProgram->getShaderProgramHandle(), _gouraudShaderProgramUniformLocations.materialSpecColor, 1, material.specular  );
-        glProgramUniform1f(  _gouraudShaderProgram->getShaderProgramHandle(), _gouraudShaderProgramUniformLocations.materialShininess,    material.shininess );
-        glProgramUniform3fv( _gouraudShaderProgram->getShaderProgramHandle(), _gouraudShaderProgramUniformLocations.materialAmbColor,  1, material.ambient   );
+        glProgramUniform3fv( _goodShaderProgram->getShaderProgramHandle(), _goodShaderProgramUniformLocations.materialDiffColor, 1, material.diffuse   );
+        glProgramUniform3fv( _goodShaderProgram->getShaderProgramHandle(), _goodShaderProgramUniformLocations.materialSpecColor, 1, material.specular  );
+        glProgramUniform1f(  _goodShaderProgram->getShaderProgramHandle(), _goodShaderProgramUniformLocations.materialShininess,    material.shininess );
+        glProgramUniform3fv( _goodShaderProgram->getShaderProgramHandle(), _goodShaderProgramUniformLocations.materialAmbColor,  1, material.ambient   );
     }
     if(_goofyShaderProgram) {
         // set the D, S, A, & shininess components of the material to our goofy Shader

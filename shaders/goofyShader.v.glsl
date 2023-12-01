@@ -97,7 +97,7 @@ void main() {
 
     // transform vertex information into world space
     vec3 vPosWorld = (modelMatrix * vec4(vPos, 1.0)).xyz;
-    vec3 nVecWorld = normalize( normalMtx * vNormal );
+    vec3 nVecWorld = normalMtx * vNormal;
 
     // // compute each component of the Phong Illumination Model
     // vec3 diffColor = diffuseColor(vPosWorld, nVecWorld);
