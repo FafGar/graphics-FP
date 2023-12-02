@@ -109,8 +109,8 @@ void main() {
     color = materialSpecColor;
 
     normalVec = nVecWorld;
-    dirLightVec = normalize( -dirLightDir );
-    spotLightVec = -normalize(spotLightPos - vPosWorld);
-    dirHalfwayVec = normalize(dirLightVec + eyePos);
-    spotHalfwayVec = normalize(spotLightVec + eyePos);
+    dirLightVec = dirLightDir;
+    spotLightVec = (spotLightPos - vPosWorld);
+    dirHalfwayVec =(dirLightVec + eyePos);
+    spotHalfwayVec = (spotLightVec + eyePos);
 }

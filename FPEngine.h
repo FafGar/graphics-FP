@@ -197,10 +197,6 @@ private:
     CSCI441::ShaderProgram* _goodShaderProgram;
     /// \desc stores the locations of all of our shader uniforms
     struct GouraudShaderProgramUniformLocations {
-       /// \desc vector in the direction of the incoming hit
-        GLfloat hitVector;
-        /// \desc time since hit. Used for animated movement
-        GLfloat timeSince;
         /// \desc precomputed MVP matrix location
         GLint mvpMatrix;
         /// \desc model matrix location

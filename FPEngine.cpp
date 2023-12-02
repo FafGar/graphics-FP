@@ -186,9 +186,9 @@ void Lab08Engine::mSetupShaders() {
     _goodShaderProgramUniformLocations.modelMatrix         = _goodShaderProgram->getUniformLocation("modelMatrix");
     _goodShaderProgramUniformLocations.normalMatrix        = _goodShaderProgram->getUniformLocation("normalMtx");
     _goodShaderProgramUniformLocations.eyePos              = _goodShaderProgram->getUniformLocation("eyePos");
-    _goodShaderProgramUniformLocations.spotLightPos            = _goodShaderProgram->getUniformLocation("spotLightPos");
-    _goodShaderProgramUniformLocations.spotLightDir            = _goodShaderProgram->getUniformLocation("spotLightDir");
-    _goodShaderProgramUniformLocations.dirLightDir            = _goodShaderProgram->getUniformLocation("dirLightDir");
+    _goodShaderProgramUniformLocations.spotLightPos        = _goodShaderProgram->getUniformLocation("spotLightPos");
+    _goodShaderProgramUniformLocations.spotLightDir        = _goodShaderProgram->getUniformLocation("spotLightDir");
+    _goodShaderProgramUniformLocations.dirLightDir         = _goodShaderProgram->getUniformLocation("dirLightDir");
     _goodShaderProgramUniformLocations.lightCutoff         = _goodShaderProgram->getUniformLocation("lightCutoff");
     _goodShaderProgramUniformLocations.lightColor          = _goodShaderProgram->getUniformLocation("lightColor");
     _goodShaderProgramUniformLocations.materialDiffColor   = _goodShaderProgram->getUniformLocation("materialDiffColor");
@@ -208,7 +208,6 @@ void Lab08Engine::mSetupShaders() {
     _flatShaderProgramUniformLocations.mvpMatrix             = _flatShaderProgram->getUniformLocation("mvpMatrix");
     _flatShaderProgramUniformLocations.color                 = _flatShaderProgram->getUniformLocation("color");
     // NOTE: we do not query an attribute locations because in our shader we have set the locations to be the same as
-    // the Gouraud Shader attribute locations
 
 }
 
@@ -330,9 +329,9 @@ void Lab08Engine::mSetupScene() {
     _lightType = 0;
 
     _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.lightColor, lightColor);
-    _goofyShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.spotLightPos, _spotLightPos);
-    _goofyShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.spotLightPos, _spotLightDir);
-    _goofyShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.dirLightDir, _lightDir);
+    _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.spotLightPos, _spotLightPos);
+    _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.spotLightPos, _spotLightDir);
+    _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.dirLightDir, _lightDir);
     _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.lightCutoff, lightCutoff);
     _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.lightType, _lightType);
 
@@ -445,6 +444,7 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
 
     //DRAW THE CUE BALL
     _goofyShaderProgram->useProgram();
+    CSCI441::setVertexAttributeLocations(_goofyShaderProgramAttributeLocations.vPos, _goofyShaderProgramAttributeLocations.vNormal, -1);
 
     _setMaterialProperties(CSCI441::Materials::WHITE_PLASTIC);
     modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.5, 0));
@@ -512,10 +512,10 @@ void Lab08Engine::_updateScene() {
     _spotLightPos.z = glm::sin(spotLightSwingAngle);
     _spotLightDir = glm::vec3(0,-glm::cos(spotLightSwingAngle),glm::sin(spotLightSwingAngle));
     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.spotLightPos, _spotLightPos);
-    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.spotLightPos, _spotLightDir);
+    _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.spotLightDir, _spotLightDir);
 
     _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.spotLightPos, _spotLightPos);
-    _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.spotLightPos, _spotLightDir);
+    _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.spotLightDir, _spotLightDir);
 
     meterHeight += meterStep;
     if(meterHeight > 2 || meterHeight < 0.1) meterStep = -meterStep;
