@@ -264,7 +264,30 @@ private:
     GLuint _skyHandle;
     GLuint _minesHandle;
 
-    //***************************************************************************
+    class Ball {
+        public:
+            Ball(float x, float y, float r, int tex);
+            float x;
+            float y;
+            float vx;
+            float vy;
+            float r;
+            glm::mat4 rot;
+            int tex;
+            bool moving;
+    };
+    /// \desc information list of all the buildings to draw
+    std::vector<Ball*> balls;
+
+    void addBall(float x, float y);
+
+    void physics(float delta) const;
+
+    void drawBalls(glm::mat4 viewMtx, glm::mat4 projMtx) const;
+
+    void hit(int i, int j) const;
+
+        //***************************************************************************
     // Private Helper Functions
 
     /// \desc sends the material uniforms to the Gouraud Shader Program
