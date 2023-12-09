@@ -308,13 +308,35 @@ void Lab08Engine::addBall(float x, float y){
     balls.emplace_back(newBall);
 }
 
+void Lab08Engine::addHole(float x, float y){
+    Hole* newHole = new Hole(x, y, 0.5);
+    holes.emplace_back(newHole);
+}
+
+void Lab08Engine::sinkBalls(){
+    for(int i = balls.size()-1; i >= 0; i--){
+        Ball* ball = balls[i];
+
+        for (int j=0; j < holes.size(); j++){
+            Hole* hole = holes[j];
+            float dist = glm::distance(glm::vec2(ball->x,ball->y),glm::vec2(hole->x,hole->y));
+            if(dist < hole->r){
+                delete ball;
+                balls.erase(balls.begin() + i);
+            }
+        }
+    }
+}
+
 void Lab08Engine::physics(float delta) const {
 
     delta = 0.1;
-    float left = -8;
-    float right = 8;
-    float down = -4;
-    float up = 4;
+    float w = 8.8;
+    float h = 4.4;
+    float left = -w;
+    float right = w;
+    float down = -h;
+    float up = h;
 
     for(int i = 0; i<balls.size(); i++){
         Ball* ball = balls[i];
@@ -356,12 +378,12 @@ void Lab08Engine::physics(float delta) const {
                 ball->x = (right - ball->r);
             }
 
-            if(ball->y < (down - ball->r)){
+            if(ball->y < (down + ball->r)){
                 ball->vy *= bounce;
-                ball->y = (down - ball->r);
-            }else if(ball->y > (up + ball->r)){
+                ball->y = (down + ball->r);
+            }else if(ball->y > (up - ball->r)){
                 ball->vy *= bounce;
-                ball->y = (up + ball->r);
+                ball->y = (up - ball->r);
             }
         }
 
@@ -405,7 +427,6 @@ void Lab08Engine::drawBalls(glm::mat4 viewMtx, glm::mat4 projMtx) const{
         _setMaterialProperties(CSCI441::Materials::WHITE_PLASTIC);
         glm::mat4 modelMatrix;
         modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(ball->x, ball->r, ball->y));
-        //modelMatrix = modelMatrix*ball.rot;
         _computeAndSendTransformationMatrices( _goofyShaderProgram,
                                                modelMatrix, viewMtx, projMtx,
                                                _goofyShaderProgramUniformLocations.mvpMatrix,
@@ -414,6 +435,81 @@ void Lab08Engine::drawBalls(glm::mat4 viewMtx, glm::mat4 projMtx) const{
 
         CSCI441::drawSolidSphere(ball->r,20,20);
     }
+
+    //draw holes for testing
+//    for( const Hole* hole : holes ){
+//        _setMaterialProperties(CSCI441::Materials::BLACK_RUBBER);
+//        glm::mat4 modelMatrix;
+//        modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(hole->x, 0, hole->y));
+//        _computeAndSendTransformationMatrices( _goofyShaderProgram,
+//                                               modelMatrix, viewMtx, projMtx,
+//                                               _goofyShaderProgramUniformLocations.mvpMatrix,
+//                                               _goofyShaderProgramUniformLocations.modelMatrix,
+//                                               _goofyShaderProgramUniformLocations.normalMatrix);
+//
+//        CSCI441::drawSolidSphere(hole->r,20,20);
+//    }
+}
+
+void Lab08Engine::setupTable(){
+
+    holes.clear();
+    balls.clear();
+
+    float w = 8.8 * 2.0;
+    float h = 4.4 * 2.0;
+    w+= 0.4;
+    h+= 0.4;
+    float wh = w/2;
+    float hh = h/2;
+    addHole(-wh, -hh);
+    addHole(0, -hh);
+    addHole(wh, -hh);
+
+    addHole(-wh, hh);
+    addHole(0, hh);
+    addHole(wh, hh);
+
+    //setup balls
+
+    w = 8.8 * 2.0;
+    h = 4.4 * 2.0;
+    wh = w/2;
+    hh = h/2;
+
+    float trix = (hh) + ((static_cast<float>(rand()) / RAND_MAX - 0.5) * 0.1);
+    float triy = (0) + ((static_cast<float>(rand()) / RAND_MAX - 0.5) * 0.1);
+    int ballcount = 1;
+    int balltype = 2;
+
+    addBall(-hh,0);
+    balls[0]->vx = 1.0;
+
+    for(int i = 0; i<5; i++){
+        ballcount = ballcount + 1;
+
+        for (int j = 0; j<(i+1); j++) {
+            if(i == 3 && j == 2){
+                balltype = 4;
+            }else if((ballcount) % 2 == 0){
+                balltype = 2 ;
+                ballcount = ballcount + 1;
+            }else{
+                balltype = 3;
+                ballcount = ballcount + 1;
+            }
+
+            if(i == 5 && j == 3){
+                ballcount = ballcount - 1;
+            }
+
+            float xpos = trix + (0.5*(i-2));
+            float ypos = triy + (0.5*(j)) - (0.25*(i));
+
+            addBall(xpos,ypos);
+        }
+    }
+
 }
 
 void Lab08Engine::mSetupTextures() {
@@ -473,15 +569,7 @@ void Lab08Engine::mSetupScene() {
     //CUE BALL
     addBall(-7,0);
 
-    addBall(0,0);
-    addBall(3,0.1);
-    addBall(-1,-1);
-
-    balls[1]->vx = 1.0;
-    balls[2]->vx = -0.5;
-
-    balls[3]->vx = -0.5;
-    balls[3]->vy = -0.5;
+    setupTable();
 }
 
 //*************************************************************************************
@@ -651,6 +739,7 @@ void Lab08Engine::_updateScene() {
     meterHeight += meterStep;
     if(meterHeight > 2 || meterHeight < 0.1) meterStep = -meterStep;
 
+    sinkBalls();
     physics(0.01);
 
     _pArcballCam->setLookAtPoint( glm::vec3(balls[0]->x,0,balls[0]->y));
@@ -778,4 +867,10 @@ Lab08Engine::Ball::Ball(float x, float y, float r, int tex) {
     this->rot = glm::mat4(0);
     this->tex = tex;
     this->moving = true;
+}
+
+Lab08Engine::Hole::Hole(float x, float y, float r) {
+    this->x = x;
+    this->y = y;
+    this->r = r;
 }
