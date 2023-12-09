@@ -37,44 +37,42 @@ vec3 hsv2rgb(vec3 c)
 
 void main() {
     // if we are looking at the front face of the fragment
-    if(gl_FrontFacing) {
-        vec3 newNormal = normalize(normalVec);
+    vec3 newNormal = normalize(normalVec);
 
-        vec3 dirLightVec = normalize(badDirLightVec);
-        vec3 spotLightVec = normalize(badSpotLightVec);
-        vec3 dirHalfwayVec = normalize(badDirHalfwayVec);
-        vec3 spotHalfwayVec = normalize(badSpotHalfwayVec);
-        float specAngle = max(dot(dirHalfwayVec, newNormal), 0.0);
-        float specular = pow(specAngle, materialShininess);
+    vec3 dirLightVec = normalize(badDirLightVec);
+    vec3 spotLightVec = normalize(badSpotLightVec);
+    vec3 dirHalfwayVec = normalize(badDirHalfwayVec);
+    vec3 spotHalfwayVec = normalize(badSpotHalfwayVec);
+    float specAngle = max(dot(dirHalfwayVec, newNormal), 0.0);
+    float specular = pow(specAngle, materialShininess);
 
-        vec3 diffColor = lightColor  * max( dot(newNormal, dirLightVec), 0.0 );
+    vec3 diffColor = lightColor  * max( dot(newNormal, dirLightVec), 0.0 );
 
-        if(1==1){ //Use this for spot light stuff later
-            specAngle = max(dot(spotHalfwayVec, newNormal), 0.0);
-            specular += pow(specAngle, materialShininess);
+    if(1==1){ //Use this for spot light stuff later
+        specAngle = max(dot(spotHalfwayVec, newNormal), 0.0);
+        specular += pow(specAngle, materialShininess);
 
-            diffColor += lightColor  * max( dot(newNormal, spotLightVec), 0.0 );
-        }
-
-        vec3 shadedColor = materialAmbColor+materialDiffColor * diffColor+materialSpecColor * specular;
-
-        vec3 shadedHSV = rgb2hsv(shadedColor);
-
-        vec3 toonHSV = shadedHSV;
-        float toonV = toonHSV.z;
-
-        int accuracy = 8;
-
-        toonV = pow(toonV, 0.5);
-        toonV *= accuracy;
-        toonV = floor(toonV);
-        toonV = toonV/accuracy;
-        toonV = pow(toonV, 2);
-
-        toonHSV.z = toonV;
-
-        vec3 toonColor = hsv2rgb(toonHSV);
-
-        fragColorOut = vec4(toonColor ,1.0);
+        diffColor += lightColor  * max( dot(newNormal, spotLightVec), 0.0 );
     }
+
+    vec3 shadedColor = materialAmbColor+materialDiffColor * diffColor+materialSpecColor * specular;
+
+    vec3 shadedHSV = rgb2hsv(shadedColor);
+
+    vec3 toonHSV = shadedHSV;
+    float toonV = toonHSV.z;
+
+    int accuracy = 8;
+
+    toonV = pow(toonV, 0.5);
+    toonV *= accuracy;
+    toonV = floor(toonV);
+    toonV = toonV/accuracy;
+    toonV = pow(toonV, 2);
+
+    toonHSV.z = toonV;
+
+    vec3 toonColor = hsv2rgb(toonHSV);
+
+    fragColorOut = vec4(toonColor ,1.0);
 }

@@ -503,8 +503,8 @@ void Lab08Engine::setupTable(){
                 ballcount = ballcount - 1;
             }
 
-            float xpos = trix + (0.5*(i-2));
-            float ypos = triy + (0.5*(j)) - (0.25*(i));
+            float xpos = trix + (0.45*(i-2));
+            float ypos = triy + (0.51*(j)) - (0.255*(i));
 
             addBall(xpos,ypos);
         }
@@ -628,12 +628,12 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     CSCI441::drawSolidSphere(800,64,32);
 
     //MINES
-    glm::mat4 minesPos = glm::translate(glm::mat4(1.0), glm::vec3(0,-30,0));
+    glm::mat4 minesPos = glm::translate(glm::mat4(1.0), glm::vec3(0,-12,0));
+    minesPos = glm::scale(minesPos, glm::vec3(0.5,0.5,0.5));
     mvpMtx = projMtx * viewMtx * minesPos;
     _textureShader->setProgramUniform(_textureShaderProgramUniform.mvpMatrix, mvpMtx);
     glBindTexture( GL_TEXTURE_2D, _minesHandle);
     mines->draw(_textureShader->getShaderProgramHandle());
-
 
     glm::mat4 modelMatrix = glm::mat4(1.0f);
 
