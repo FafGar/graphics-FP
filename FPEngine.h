@@ -287,6 +287,22 @@ private:
 
     void hit(int i, int j) const;
 
+    class Hole {
+    public:
+        Hole(float x, float y, float r);
+        float x;
+        float y;
+        float r;
+    };
+    /// \desc information list of all the buildings to draw
+    std::vector<Hole*> holes;
+
+    void sinkBalls();
+
+    void addHole(float x, float y);
+
+    void setupTable();
+
         //***************************************************************************
     // Private Helper Functions
 
