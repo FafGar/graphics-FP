@@ -483,7 +483,7 @@ void Lab08Engine::setupTable(){
     int balltype = 2;
 
     addBall(-hh,0);
-    balls[0]->vx = 1.0;
+    // balls[0]->vx = 1.0;
 
     for(int i = 0; i<5; i++){
         ballcount = ballcount + 1;
@@ -567,7 +567,6 @@ void Lab08Engine::mSetupScene() {
     _minesHandle = CSCI441::TextureUtils::loadAndRegisterTexture("textures/mines.png");
 
     //CUE BALL
-    addBall(-7,0);
 
     setupTable();
 }
