@@ -276,7 +276,7 @@ private:
             int tex;
             bool moving;
     };
-    /// \desc information list of all the buildings to draw
+    /// \desc All the balls. Index 0 is the cue ball
     std::vector<Ball*> balls;
 
     void addBall(float x, float y);

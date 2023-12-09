@@ -62,6 +62,10 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
                             glm::vec3 hitVec = _pArcballCam->getPosition() - _pArcballCam->getLookAtPoint();
                             _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.hitVector, glm::normalize(hitVec));
                             glfwSetTime(0);
+                            
+                            hitVec = glm::normalize(hitVec) * (float(meterHeight*2.5));
+                            balls[0]->vx = -hitVec.x;
+                            balls[0]->vy = -hitVec.z;
                     }
                     
 
@@ -319,7 +323,7 @@ void Lab08Engine::physics(float delta) const {
         ball->y += ball->vy * delta;
 
         float fric = 1 - (0.5 * delta);
-        fric = 0.999;
+        fric = 0.99;
         ball->vx *= fric;
         ball->vy *= fric;
 
@@ -328,6 +332,7 @@ void Lab08Engine::physics(float delta) const {
         }else {
             ball->vx = 0;
             ball->vy = 0;
+            ball->moving = false;
         }
 
         for(int j = i; j<balls.size(); j++){
@@ -465,15 +470,18 @@ void Lab08Engine::mSetupScene() {
     _skyHandle = CSCI441::TextureUtils::loadAndRegisterTexture("textures/minesskyrev.png");
     _minesHandle = CSCI441::TextureUtils::loadAndRegisterTexture("textures/mines.png");
 
+    //CUE BALL
+    addBall(-7,0);
+
     addBall(0,0);
     addBall(3,0.1);
     addBall(-1,-1);
 
-    balls[0]->vx = 1.0;
-    balls[1]->vx = -0.5;
-
+    balls[1]->vx = 1.0;
     balls[2]->vx = -0.5;
-    balls[2]->vy = -0.5;
+
+    balls[3]->vx = -0.5;
+    balls[3]->vy = -0.5;
 }
 
 //*************************************************************************************
@@ -567,16 +575,16 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     _goofyShaderProgram->useProgram();
     CSCI441::setVertexAttributeLocations(_goofyShaderProgramAttributeLocations.vPos, _goofyShaderProgramAttributeLocations.vNormal, -1);
 
-    _setMaterialProperties(CSCI441::Materials::WHITE_PLASTIC);
-    modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.5, 0));
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2,0.2, 0.2));
-    _computeAndSendTransformationMatrices( _goofyShaderProgram,
-                                            modelMatrix, viewMtx, projMtx,
-                                            _goofyShaderProgramUniformLocations.mvpMatrix,
-                                            _goofyShaderProgramUniformLocations.modelMatrix,
-                                            _goofyShaderProgramUniformLocations.normalMatrix);
+    // _setMaterialProperties(CSCI441::Materials::WHITE_PLASTIC);
+    // modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.5, 0));
+    // modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2,0.2, 0.2));
+    // _computeAndSendTransformationMatrices( _goofyShaderProgram,
+    //                                         modelMatrix, viewMtx, projMtx,
+    //                                         _goofyShaderProgramUniformLocations.mvpMatrix,
+    //                                         _goofyShaderProgramUniformLocations.modelMatrix,
+    //                                         _goofyShaderProgramUniformLocations.normalMatrix);
 
-    CSCI441::drawSolidSphere(1,20,20);
+    // CSCI441::drawSolidSphere(1,20,20);
 
     drawBalls(viewMtx, projMtx);
 
@@ -644,6 +652,9 @@ void Lab08Engine::_updateScene() {
     if(meterHeight > 2 || meterHeight < 0.1) meterStep = -meterStep;
 
     physics(0.01);
+
+    _pArcballCam->setLookAtPoint( glm::vec3(balls[0]->x,0,balls[0]->y));
+    _pArcballCam->recomputeOrientation();
 }
 
 void Lab08Engine::run() {
