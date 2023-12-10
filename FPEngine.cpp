@@ -823,46 +823,12 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
 
     if(cueState == 1){
         modelMatrix = glm::mat4(1.0f);
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(0,-0.85,0));
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(meterHeight,0.4,1));
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(-0.85,-1,0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4,meterHeight*2,1));
 
         _computeAndSendTransformationMatrices(_flatShaderProgram,modelMatrix,glm::mat4(1.f),glm::mat4(1.f),_flatShaderProgramUniformLocations.mvpMatrix);
+        _flatShaderProgram->setProgramUniform(_flatShaderProgramUniformLocations.color, glm::vec3(meterHeight/2, 0.6/meterHeight,0.1));
         CSCI441::drawSolidCube(0.25);
-    }
-
-    modelMatrix = glm::mat4(1.0f);
-    _computeAndSendTransformationMatrices(_flatShaderProgram,
-                                          modelMatrix, viewMtx, projMtx,
-                                          _flatShaderProgramUniformLocations.mvpMatrix);
-    // draw a visual of where our point or spotlight is located
-
-    // if using a point light
-    if( _lightType == 0 ) {
-        // move to the light location
-        modelMatrix = glm::translate( glm::mat4(1.0f), _spotLightPos );
-        _computeAndSendTransformationMatrices(_flatShaderProgram,
-                                              modelMatrix, viewMtx, projMtx,
-                                              _flatShaderProgramUniformLocations.mvpMatrix);
-        // draw a sphere there
-        CSCI441::drawSolidSphere(0.25f, 16, 16);
-    }
-        // if using a spotlight
-    else if( _lightType == 2 ) {
-        // move to the light location
-        modelMatrix = glm::translate( glm::mat4(1.0f), _spotLightPos );
-
-        // orient with the light direction
-        glm::vec3 rotAxis = glm::normalize( glm::cross( CSCI441::Y_AXIS_NEG, glm::normalize(_lightDir) ) );
-        GLfloat rotAngle = acosf( glm::dot( CSCI441::Y_AXIS_NEG, glm::normalize(_lightDir) ) );
-        glm::mat4 rotMtx = glm::rotate( glm::mat4(1.0f), rotAngle, rotAxis );
-        modelMatrix = modelMatrix * rotMtx;
-
-        _computeAndSendTransformationMatrices(_flatShaderProgram,
-                                              modelMatrix, viewMtx, projMtx,
-                                              _flatShaderProgramUniformLocations.mvpMatrix);
-
-        // draw a cone there
-        CSCI441::drawSolidCone(_lightAngle, 1.0f, 16, 16);
     }
 }
 
