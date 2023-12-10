@@ -338,14 +338,16 @@ void Lab08Engine::sinkBalls(){
         for (int j=0; j < holes.size(); j++){
             Hole* hole = holes[j];
             float dist = glm::distance(glm::vec2(ball->x,ball->y),glm::vec2(hole->x,hole->y));
-            if(dist < hole->r){
+            if(dist < hole->r*2){
                 // store values of sunk balls before deletion
                 switch(ball->s) {
                     case striped:
                         sunkStriped++;
+                        sunkThisTurnStriped++;
                         break;
                     case regular:
                         sunkRegular++;
+                        sunkThisTurnRegular++;
                         break;
                     case eight:
                         sunkEight++;
@@ -892,18 +894,14 @@ void Lab08Engine::_updateScene() {
     physics(0.01);
     // check if balls are moving to update shoot status
     if(gamesUnlimitedGames){
-        std::cout << "games";
+        //std::cout << "games";
         if (areBallsMoving()) {
             canShoot = false;
         } else {
-            // switch players
             if(!canShoot) {
                 canShoot = true;
-                if (currentPlayer == 1) {
-                    currentPlayer = 2;
-                } else {
-                    currentPlayer = 1;
-                }
+                // check who's turn it is
+                checkSinkTurn();
             }
             // if after the balls stop moving after the first shot and no balls are hit, do the easter egg
             if (currentTurn == 1) {
@@ -921,10 +919,37 @@ void Lab08Engine::_updateScene() {
     }
 }
 
-
+void Lab08Engine::checkSinkTurn(){
+    if(currentPlayer == stripedPlayer){
+        if(sunkThisTurnStriped > 0 && sunkThisTurnRegular == 0){
+            sunkThisTurnStriped = 0;
+            return;
+        }
+        else{
+            if (currentPlayer == 1) {
+                currentPlayer = 2;
+            } else {
+                currentPlayer = 1;
+            }
+        }
+    }
+    else{
+        if(sunkThisTurnRegular > 0 && sunkThisTurnStriped == 0){
+            sunkThisTurnRegular = 0;
+            return;
+        }
+        else{
+            if (currentPlayer == 1) {
+                currentPlayer = 2;
+            } else {
+                currentPlayer = 1;
+            }
+        }
+    }
+}
 void Lab08Engine::endGame(){
     // TODO: signify the winner, give them dopamine somehow
-    std::cout << "you win" << std::endl;
+    std::cout << "player " << winner << " win! " << std::endl;
     std::cout << "sunk balls standard " << sunkRegular << " striped " << sunkStriped << " eight " << sunkEight << std::endl;
     gamesUnlimitedGames = false;
     return;
@@ -948,9 +973,11 @@ void Lab08Engine::easterEgg(){
 }
 
 void Lab08Engine::resetGame(){
-    sunkEight, sunkRegular, sunkStriped, winner, stripedPlayer, regularPlayer, currentTurn = 0;
+    sunkEight, sunkRegular, sunkStriped, winner, stripedPlayer,
+    regularPlayer, sunkThisTurnStriped, sunkThisTurnRegular, currentTurn = 0;
     myBallsHaveBeenHit = false;
     currentPlayer = 1;
+    canShoot = true;
     setupTable();
 }
 

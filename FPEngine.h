@@ -297,6 +297,9 @@ private:
     int sunkRegular = 0;
     int sunkEight = 0;
 
+    int sunkThisTurnStriped = 0;
+    int sunkThisTurnRegular = 0;
+
     int stripedPlayer = 0;
     int regularPlayer = 0;
 
@@ -372,6 +375,8 @@ private:
     void easterEgg();
 
     void checkWin();
+
+    void checkSinkTurn();
 };
 
 void lab08_keyboard_callback(GLFWwindow *window, int key, int scancode, int action, int mods );
