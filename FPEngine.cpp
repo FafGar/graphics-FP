@@ -410,8 +410,14 @@ void Lab08Engine::physics(float delta) {
         ball->vx *= fric;
         ball->vy *= fric;
 
-        if((ball->vx * ball->vx + ball->vy * ball->vy) > 0.01){
+        float speed = glm::length(glm::vec2(ball->vx,ball->vy));
+        if(speed > 0.001){
             ball->moving = true;
+
+            //rotate ball matrix
+            glm::vec3 dir = glm::normalize(glm::vec3(ball->vx,0,ball->vy));
+            glm::vec3 rotAxis = glm::cross(dir,glm::vec3(0,1,0));
+            ball->rot = glm::rotate(ball->rot, speed*-0.25f, rotAxis);
         }else {
             ball->vx = 0;
             ball->vy = 0;
@@ -513,6 +519,17 @@ void Lab08Engine::drawBalls(glm::mat4 viewMtx, glm::mat4 projMtx) const{
         }
 
         CSCI441::drawSolidSphere(ball->r,20,20);
+
+        //test draw rotation axis
+//        glm::vec3 dir = glm::normalize(glm::vec3(ball->vx,0,ball->vy));
+//        glm::vec3 rotAxis = glm::cross(dir,glm::vec3(0,1,0));
+//        modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(ball->x, ball->r*2.0f, ball->y) + (rotAxis));
+//        _computeAndSendTransformationMatrices( _goofyShaderProgram,
+//                                               modelMatrix, viewMtx, projMtx,
+//                                               _goofyShaderProgramUniformLocations.mvpMatrix,
+//                                               _goofyShaderProgramUniformLocations.modelMatrix,
+//                                               _goofyShaderProgramUniformLocations.normalMatrix);
+//        CSCI441::drawSolidSphere(0.1f,4,4);
 
     }
 
