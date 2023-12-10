@@ -308,8 +308,8 @@ void Lab08Engine::_createPlatform(GLuint vao, GLuint vbo, GLuint ibo, GLsizei &n
     fprintf( stdout, "[INFO]: platform read in with VAO/VBO/IBO %d/%d/%d & %d points\n", vao, vbo, ibo, numVAOPoints );
 }
 
-void Lab08Engine::addBall(float x, float y, ballStyle s){
-    Ball* newBall = new Ball(x, y, 0.25, 0, s);
+void Lab08Engine::addBall(float x, float y){
+    Ball* newBall = new Ball(x, y, 0.25, 0);
     balls.emplace_back(newBall);
 }
 
@@ -533,7 +533,7 @@ void Lab08Engine::setupTable(){
     int ballcount = 1;
     int balltype = 2;
 
-    addBall(-hh,0, ballStyle::cue);
+    addBall(-hh,0);
     // balls[0]->vx = 1.0;
 
     for(int i = 0; i<5; i++){
@@ -556,17 +556,8 @@ void Lab08Engine::setupTable(){
 
             float xpos = trix + (0.45*(i-2));
             float ypos = triy + (0.51*(j)) - (0.255*(i));
-            ballStyle style;
-            if(ballcount == 8){
-                style = eight;
-            }
-            else if(ballcount % 2 == 0){
-                style = striped;
-            }
-            else{
-                style = regular;
-            }
-            addBall(xpos,ypos,style);
+
+            addBall(xpos,ypos);
         }
     }
 
@@ -800,6 +791,7 @@ void Lab08Engine::_updateScene() {
 
     meterHeight += meterStep;
     if(meterHeight > 2 || meterHeight < 0.1) meterStep = -meterStep;
+
     sinkBalls();
     physics(0.01);
 
@@ -919,8 +911,7 @@ void lab08_scroll_callback(GLFWwindow *window, double xOffset, double yOffset) {
     }
 }
 
-Lab08Engine::Ball::Ball(float x, float y, float r, int tex, ballStyle s) {
-    this->s = s;
+Lab08Engine::Ball::Ball(float x, float y, float r, int tex) {
     this->x = x;
     this->y = y;
     this->vx = 0;
