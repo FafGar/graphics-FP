@@ -265,10 +265,12 @@ private:
 
     GLuint _skyHandle;
     GLuint _minesHandle;
+    enum ballStyle { regular, striped, cue, eight };
 
     class Ball {
         public:
-            Ball(float x, float y, float r, int tex);
+            Ball(float x, float y, float r, int tex, ballStyle s);
+            ballStyle s;
             float x;
             float y;
             float vx;
@@ -281,7 +283,7 @@ private:
     /// \desc All the balls. Index 0 is the cue ball
     std::vector<Ball*> balls;
 
-    void addBall(float x, float y);
+    void addBall(float x, float y, ballStyle s);
 
     void physics(float delta) const;
 
