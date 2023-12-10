@@ -55,7 +55,7 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
                 break;
 
             case GLFW_KEY_H:
-                if(_goofyShaderProgram){
+                if(_goofyShaderProgram && canShoot){
                     cueState++;
 
                     if(cueState == 2){
@@ -70,6 +70,8 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
                         hitVec = glm::normalize(hitVec) * (float(meterHeight*2.5));
                         balls[0]->vx = -hitVec.x;
                         balls[0]->vy = -hitVec.z;
+                        // make it so you can't shoot until balls have stopped moving
+                        canShoot = false;
                     }
 
 
@@ -383,7 +385,7 @@ void Lab08Engine::physics(float delta) const {
         ball->vx *= fric;
         ball->vy *= fric;
 
-        if(ball->vx * ball->vx + ball->vy * ball->vy){
+        if((ball->vx * ball->vx + ball->vy * ball->vy) > 0.01){
             ball->moving = true;
         }else {
             ball->vx = 0;
@@ -831,9 +833,24 @@ void Lab08Engine::_updateScene() {
     if(meterHeight > 2 || meterHeight < 0.1) meterStep = -meterStep;
     sinkBalls();
     physics(0.01);
-
+    // check if balls are moving to update shoot status
+    if(areBallsMoving()){
+        canShoot = false;
+    }
+    else{
+        canShoot = true;
+    }
     _pArcballCam->setLookAtPoint( glm::vec3(balls[0]->x,0,balls[0]->y));
     _pArcballCam->recomputeOrientation();
+}
+
+bool Lab08Engine::areBallsMoving(){
+    for(Ball* b: balls){
+        if (b->moving){
+            return true;
+        }
+    }
+    return false;
 }
 
 void Lab08Engine::run() {

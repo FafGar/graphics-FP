@@ -283,6 +283,13 @@ private:
     /// \desc All the balls. Index 0 is the cue ball
     std::vector<Ball*> balls;
 
+    // beginning with player 1
+    int currentPlayer = 1;
+    // initially zero, then 1 or 2 for which player wins
+    int winner = 0;
+    // variable to track if balls can be shot or not
+    bool canShoot = true;
+
     void addBall(float x, float y, ballStyle s);
 
     void physics(float delta) const;
@@ -329,6 +336,8 @@ private:
     static void _computeAndSendTransformationMatrices(CSCI441::ShaderProgram* shaderProgram,
                                                       glm::mat4 modelMatrix, glm::mat4 viewMatrix, glm::mat4 projectionMatrix,
                                                       GLint mvpMtxLocation, GLint modelMtxLocation = -1, GLint normalMtxLocation = -1);
+
+    bool areBallsMoving();
 };
 
 void lab08_keyboard_callback(GLFWwindow *window, int key, int scancode, int action, int mods );
