@@ -151,7 +151,7 @@ private:
     // Shader Program Information
 
     /// \desc shader program for cue ball weirdness
-     CSCI441::ShaderProgram* _goofyShaderProgram;
+    CSCI441::ShaderProgram* _goofyShaderProgram;
     /// \desc stores the locations of all of our shader uniforms
     struct goofyShaderProgramUniformLocations {
         /// \desc vector in the direction of the incoming hit
@@ -265,23 +265,25 @@ private:
 
     GLuint _skyHandle;
     GLuint _minesHandle;
+    enum ballStyle { regular, striped, cue, eight };
 
     class Ball {
-        public:
-            Ball(float x, float y, float r, int tex);
-            float x;
-            float y;
-            float vx;
-            float vy;
-            float r;
-            glm::mat4 rot;
-            int tex;
-            bool moving;
+    public:
+        Ball(float x, float y, float r, int tex, ballStyle s);
+        ballStyle s;
+        float x;
+        float y;
+        float vx;
+        float vy;
+        float r;
+        glm::mat4 rot;
+        int tex;
+        bool moving;
     };
     /// \desc All the balls. Index 0 is the cue ball
     std::vector<Ball*> balls;
 
-    void addBall(float x, float y);
+    void addBall(float x, float y, ballStyle s);
 
     void physics(float delta) const;
 
@@ -307,7 +309,7 @@ private:
 
     void setupTable();
 
-        //***************************************************************************
+    //***************************************************************************
     // Private Helper Functions
 
     /// \desc sends the material uniforms to the Gouraud Shader Program
@@ -323,8 +325,8 @@ private:
     /// \param modelMtxLocation location of the Model matrix within the shaderProgram (-1 by default)
     /// \param normalMtxLocation location of the Normal matrix within the shaderProgram (-1 by default)
     static void _computeAndSendTransformationMatrices(CSCI441::ShaderProgram* shaderProgram,
-                                               glm::mat4 modelMatrix, glm::mat4 viewMatrix, glm::mat4 projectionMatrix,
-                                               GLint mvpMtxLocation, GLint modelMtxLocation = -1, GLint normalMtxLocation = -1);
+                                                      glm::mat4 modelMatrix, glm::mat4 viewMatrix, glm::mat4 projectionMatrix,
+                                                      GLint mvpMtxLocation, GLint modelMtxLocation = -1, GLint normalMtxLocation = -1);
 };
 
 void lab08_keyboard_callback(GLFWwindow *window, int key, int scancode, int action, int mods );

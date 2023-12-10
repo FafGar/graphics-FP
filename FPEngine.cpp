@@ -17,9 +17,9 @@
 // Public Interface
 
 Lab08Engine::Lab08Engine()
-         : CSCI441::OpenGLEngine(4, 1,
-                                 960, 960,
-                                 "FP: POOL HALL") {
+        : CSCI441::OpenGLEngine(4, 1,
+                                960, 960,
+                                "FP: POOL HALL") {
 
     for(auto& _key : _keys) _key = GL_FALSE;
 
@@ -30,7 +30,7 @@ Lab08Engine::Lab08Engine()
 void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
     if(key != GLFW_KEY_UNKNOWN)
         _keys[key] = ((action == GLFW_PRESS) || (action == GLFW_REPEAT));
-    
+
     if(action == GLFW_PRESS) {
         switch( key ) {
             // quit!
@@ -39,7 +39,7 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
                 setWindowShouldClose();
                 break;
 
-            // toggle between light types
+                // toggle between light types
             case GLFW_KEY_1:    // point light
             case GLFW_KEY_2:    // directional light
             case GLFW_KEY_3:    // spotlight
@@ -53,21 +53,21 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
                     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.lightType, _lightType );
                 }
                 break;
-            
+
             case GLFW_KEY_H:
                 if(_goofyShaderProgram){
                     cueState++;
 
                     if(cueState == 2){
-                            glm::vec3 hitVec = _pArcballCam->getPosition() - _pArcballCam->getLookAtPoint();
-                            _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.hitVector, glm::normalize(hitVec));
-                            glfwSetTime(0);
-                            
-                            hitVec = glm::normalize(hitVec) * (float(meterHeight*2.5));
-                            balls[0]->vx = -hitVec.x;
-                            balls[0]->vy = -hitVec.z;
+                        glm::vec3 hitVec = _pArcballCam->getPosition() - _pArcballCam->getLookAtPoint();
+                        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.hitVector, glm::normalize(hitVec));
+                        glfwSetTime(0);
+
+                        hitVec = glm::normalize(hitVec) * (float(meterHeight*2.5));
+                        balls[0]->vx = -hitVec.x;
+                        balls[0]->vy = -hitVec.z;
                     }
-                    
+
 
                     if(cueState >1) cueState = 0;
                 }
@@ -98,7 +98,7 @@ void Lab08Engine::handleCursorPositionEvent(glm::vec2 currMousePosition) {
             GLfloat totChgSq = (currMousePosition.x - _mousePosition.x) + (currMousePosition.y - _mousePosition.y);
             _pArcballCam->moveForward(totChgSq * 0.01f );
         }
-        // otherwise, update our camera angles theta & phi
+            // otherwise, update our camera angles theta & phi
         else {
             if(cueState != 1) {
                 // rotate the camera by the distance the mouse moved
@@ -308,8 +308,8 @@ void Lab08Engine::_createPlatform(GLuint vao, GLuint vbo, GLuint ibo, GLsizei &n
     fprintf( stdout, "[INFO]: platform read in with VAO/VBO/IBO %d/%d/%d & %d points\n", vao, vbo, ibo, numVAOPoints );
 }
 
-void Lab08Engine::addBall(float x, float y){
-    Ball* newBall = new Ball(x, y, 0.25, 0);
+void Lab08Engine::addBall(float x, float y, ballStyle s){
+    Ball* newBall = new Ball(x, y, 0.25, 0, s);
     balls.emplace_back(newBall);
 }
 
@@ -533,7 +533,7 @@ void Lab08Engine::setupTable(){
     int ballcount = 1;
     int balltype = 2;
 
-    addBall(-hh,0);
+    addBall(-hh,0, ballStyle::cue);
     // balls[0]->vx = 1.0;
 
     for(int i = 0; i<5; i++){
@@ -556,8 +556,17 @@ void Lab08Engine::setupTable(){
 
             float xpos = trix + (0.45*(i-2));
             float ypos = triy + (0.51*(j)) - (0.255*(i));
-
-            addBall(xpos,ypos);
+            ballStyle style;
+            if(ballcount == 8){
+                style = eight;
+            }
+            else if(ballcount % 2 == 0){
+                style = striped;
+            }
+            else{
+                style = regular;
+            }
+            addBall(xpos,ypos,style);
         }
     }
 
@@ -693,13 +702,13 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     CSCI441::setVertexAttributeLocations(_goodShaderProgramAttributeLocations.vPos, _goodShaderProgramAttributeLocations.vNormal, -1);
 
     //draw pool table
-     modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
-     modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1,0.1,0.1));
-     _computeAndSendTransformationMatrices( _goodShaderProgram,
-                                             modelMatrix, viewMtx, projMtx,
-                                             _goodShaderProgramUniformLocations.mvpMatrix,
-                                             _goodShaderProgramUniformLocations.modelMatrix,
-                                             _goodShaderProgramUniformLocations.normalMatrix);
+    modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1,0.1,0.1));
+    _computeAndSendTransformationMatrices( _goodShaderProgram,
+                                           modelMatrix, viewMtx, projMtx,
+                                           _goodShaderProgramUniformLocations.mvpMatrix,
+                                           _goodShaderProgramUniformLocations.modelMatrix,
+                                           _goodShaderProgramUniformLocations.normalMatrix);
 
     _setMaterialProperties(CSCI441::Materials::GREEN_RUBBER);
     poolGrass->draw(_goodShaderProgram->getShaderProgramHandle());
@@ -730,7 +739,7 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
 
 
     _flatShaderProgram->useProgram();
-    
+
     if(cueState == 1){
         modelMatrix = glm::mat4(1.0f);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(0,-0.85,0));
@@ -743,7 +752,7 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     modelMatrix = glm::mat4(1.0f);
     _computeAndSendTransformationMatrices(_flatShaderProgram,
                                           modelMatrix, viewMtx, projMtx,
-                                         _flatShaderProgramUniformLocations.mvpMatrix); 
+                                          _flatShaderProgramUniformLocations.mvpMatrix);
     // draw a visual of where our point or spotlight is located
 
     // if using a point light
@@ -756,7 +765,7 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
         // draw a sphere there
         CSCI441::drawSolidSphere(0.25f, 16, 16);
     }
-    // if using a spotlight
+        // if using a spotlight
     else if( _lightType == 2 ) {
         // move to the light location
         modelMatrix = glm::translate( glm::mat4(1.0f), _spotLightPos );
@@ -791,7 +800,6 @@ void Lab08Engine::_updateScene() {
 
     meterHeight += meterStep;
     if(meterHeight > 2 || meterHeight < 0.1) meterStep = -meterStep;
-
     sinkBalls();
     physics(0.01);
 
@@ -911,7 +919,8 @@ void lab08_scroll_callback(GLFWwindow *window, double xOffset, double yOffset) {
     }
 }
 
-Lab08Engine::Ball::Ball(float x, float y, float r, int tex) {
+Lab08Engine::Ball::Ball(float x, float y, float r, int tex, ballStyle s) {
+    this->s = s;
     this->x = x;
     this->y = y;
     this->vx = 0;
