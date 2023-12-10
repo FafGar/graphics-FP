@@ -283,6 +283,13 @@ private:
     /// \desc All the balls. Index 0 is the cue ball
     std::vector<Ball*> balls;
 
+    int sunkStriped = 0;
+    int sunkRegular = 0;
+    int sunkEight = 0;
+
+    int stripedPlayer = 0;
+    int regularPlayer = 0;
+
     // beginning with player 1
     int currentPlayer = 1;
     // initially zero, then 1 or 2 for which player wins
@@ -338,6 +345,16 @@ private:
                                                       GLint mvpMtxLocation, GLint modelMtxLocation = -1, GLint normalMtxLocation = -1);
 
     bool areBallsMoving();
+
+    void setPlayerBallTypes();
+
+    void resetGame();
+
+    void eightBallDestructionMegaLoss();
+
+    void endGame();
+
+    void easterEgg();
 };
 
 void lab08_keyboard_callback(GLFWwindow *window, int key, int scancode, int action, int mods );

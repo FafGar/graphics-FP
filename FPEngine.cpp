@@ -332,6 +332,22 @@ void Lab08Engine::sinkBalls(){
             Hole* hole = holes[j];
             float dist = glm::distance(glm::vec2(ball->x,ball->y),glm::vec2(hole->x,hole->y));
             if(dist < hole->r){
+                // store values of sunk balls before deletion
+                switch(ball->s) {
+                    case striped:
+                        sunkStriped++;
+                        break;
+                    case regular:
+                        sunkRegular++;
+                        break;
+                    case eight:
+                        sunkEight++;
+                        break;
+                    case cue:
+                        break;
+                    default:
+                        break;
+                }
                 delete ball;
                 balls.erase(balls.begin() + i);
             }
@@ -832,6 +848,10 @@ void Lab08Engine::_updateScene() {
     meterHeight += meterStep;
     if(meterHeight > 2 || meterHeight < 0.1) meterStep = -meterStep;
     sinkBalls();
+    if(stripedPlayer == 0 && regularPlayer == 0){
+        setPlayerBallTypes();
+    }
+    eightBallDestructionMegaLoss();
     physics(0.01);
     // check if balls are moving to update shoot status
     if(areBallsMoving()){
@@ -844,6 +864,48 @@ void Lab08Engine::_updateScene() {
     _pArcballCam->recomputeOrientation();
 }
 
+// ends the game
+void Lab08Engine::endGame(){
+    // TODO: signify the winner, give them dopamine somehow
+    return;
+}
+
+// easter egg that appears if the first shot doesn't work
+void Lab08Engine::easterEgg(){
+    // TODO: easter the egg
+    return;
+}
+// resets the variables and sets up the table again
+void Lab08Engine::resetGame(){
+    sunkEight, sunkRegular, sunkStriped, winner, stripedPlayer, regularPlayer = 0;
+    currentPlayer = 1;
+    setupTable();
+}
+
+// check if eight ball causes player to lose
+void Lab08Engine::eightBallDestructionMegaLoss(){
+    if(sunkEight != 0){
+        if(currentPlayer == 1){
+            winner = 2;
+        }
+        else{
+            winner = 1;
+        }
+        endGame();
+    }
+}
+// checks until a player sinks a ball
+void Lab08Engine::setPlayerBallTypes(){
+    if(sunkRegular > 0){
+        regularPlayer = currentPlayer;
+    }
+    if(currentPlayer == 1){
+        stripedPlayer = 2;
+    }
+    else{
+        stripedPlayer = 1;
+    }
+}
 bool Lab08Engine::areBallsMoving(){
     for(Ball* b: balls){
         if (b->moving){
