@@ -21,6 +21,7 @@ uniform vec3 materialAmbColor;          // the material ambient color
 // attribute inputs
 layout(location = 0) in vec3 vPos;      // the position of this specific vertex in object space
 layout(location = 1) in vec3 vNormal;   // the normal of this specific vertex in object space
+layout(location = 2) in vec2 inTexCoord;
 
 // varying outputs
 layout(location = 0) out vec3 color;    // color to apply to this vertex
@@ -28,7 +29,8 @@ layout(location = 1) out vec3 normalVec;
 layout(location = 2) out vec3 dirLightVec; 
 layout(location = 3) out vec3 spotLightVec; 
 layout(location = 4) out vec3 dirHalfwayVec; 
-layout(location = 5) out vec3 spotHalfwayVec; 
+layout(location = 5) out vec3 spotHalfwayVec;
+layout(location = 6) out vec2 texCoord;
 
 //global variable because I'm lazy
 float redOffset;
@@ -92,6 +94,7 @@ vec4 deform(){
 }
 
 void main() {
+    texCoord = inTexCoord;
     // transform & output the vertex in clip space
     gl_Position = mvpMatrix * deform();
 

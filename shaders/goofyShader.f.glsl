@@ -5,14 +5,16 @@ uniform vec3 lightColor;                // light color
 uniform vec3 materialAmbColor;          // the material ambient color
 uniform vec3 materialDiffColor;
 uniform vec3 materialSpecColor;     
-uniform float materialShininess; 
+uniform float materialShininess;
+uniform sampler2D texMap;
 
 layout(location = 0) in vec3 color;     // interpolated color for this fragment
 layout(location = 1) in vec3 normalVec; 
 layout(location = 2) in vec3 badDirLightVec; 
 layout(location = 3) in vec3 badSpotLightVec; 
 layout(location = 4) in vec3 badDirHalfwayVec; 
-layout(location = 5) in vec3 badSpotHalfwayVec; 
+layout(location = 5) in vec3 badSpotHalfwayVec;
+layout(location = 6) in vec2 texCoord;
 
 // outputs
 out vec4 fragColorOut;// color to apply to this fragment
@@ -54,8 +56,9 @@ void main() {
 
         diffColor += lightColor  * max( dot(newNormal, spotLightVec), 0.0 );
     }
-
-    vec3 shadedColor = materialAmbColor+materialDiffColor * diffColor+materialSpecColor * specular;
+    vec3 texel = vec3(texture(texMap, texCoord));
+    vec3 shadedColor = (materialAmbColor*texel)+(materialDiffColor*texel) * diffColor+(materialSpecColor*texel) * specular;
+    //shadedColor = texel;
 
     vec3 shadedHSV = rgb2hsv(shadedColor);
 

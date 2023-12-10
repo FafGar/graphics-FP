@@ -186,6 +186,8 @@ private:
         GLint materialShininess;
         /// \desc material ambient color location
         GLint materialAmbColor;
+        /// \desc material diffuse Map location
+        GLint diffuseMap;
     } _goofyShaderProgramUniformLocations;
     /// \desc stores the locations of all of our shader attributes
     struct goofyShaderProgramAttributeLocations {
@@ -193,6 +195,8 @@ private:
         GLint vPos;
         /// \desc vertex normal location
         GLint vNormal;
+        /// \desc texture coordinate location
+        GLint vTexCoord;
     } _goofyShaderProgramAttributeLocations;
 
     /// \desc shader program that performs Gouraud Shading with the Phong Illumination Model
@@ -265,6 +269,10 @@ private:
 
     GLuint _skyHandle;
     GLuint _minesHandle;
+    GLuint _cueBallHandle;
+    GLuint _8BallHandle;
+    GLuint _solidBallHandle;
+    GLuint _stripeBallHandle;
     enum ballStyle { regular, striped, cue, eight };
 
     class Ball {
@@ -311,6 +319,8 @@ private:
     void drawStick(glm::mat4 viewMtx, glm::mat4 projMtx) const;
 
     void hit(int i, int j) const;
+
+    glm::mat4 randomRotationMatrix();
 
     class Hole {
     public:

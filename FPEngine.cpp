@@ -175,18 +175,20 @@ void Lab08Engine::mSetupShaders() {
     _goofyShaderProgramUniformLocations.modelMatrix         = _goofyShaderProgram->getUniformLocation("modelMatrix");
     _goofyShaderProgramUniformLocations.normalMatrix        = _goofyShaderProgram->getUniformLocation("normalMtx");
     _goofyShaderProgramUniformLocations.eyePos              = _goofyShaderProgram->getUniformLocation("eyePos");
-    _goofyShaderProgramUniformLocations.spotLightPos            = _goofyShaderProgram->getUniformLocation("spotLightPos");
-    _goofyShaderProgramUniformLocations.spotLightDir            = _goofyShaderProgram->getUniformLocation("spotLightDir");
-    _goofyShaderProgramUniformLocations.dirLightDir            = _goofyShaderProgram->getUniformLocation("dirLightDir");
+    _goofyShaderProgramUniformLocations.spotLightPos        = _goofyShaderProgram->getUniformLocation("spotLightPos");
+    _goofyShaderProgramUniformLocations.spotLightDir        = _goofyShaderProgram->getUniformLocation("spotLightDir");
+    _goofyShaderProgramUniformLocations.dirLightDir         = _goofyShaderProgram->getUniformLocation("dirLightDir");
     _goofyShaderProgramUniformLocations.lightCutoff         = _goofyShaderProgram->getUniformLocation("lightCutoff");
     _goofyShaderProgramUniformLocations.lightColor          = _goofyShaderProgram->getUniformLocation("lightColor");
     _goofyShaderProgramUniformLocations.materialDiffColor   = _goofyShaderProgram->getUniformLocation("materialDiffColor");
     _goofyShaderProgramUniformLocations.materialSpecColor   = _goofyShaderProgram->getUniformLocation("materialSpecColor");
     _goofyShaderProgramUniformLocations.materialShininess   = _goofyShaderProgram->getUniformLocation("materialShininess");
     _goofyShaderProgramUniformLocations.materialAmbColor    = _goofyShaderProgram->getUniformLocation("materialAmbColor");
+    _goofyShaderProgramUniformLocations.diffuseMap          = _goofyShaderProgram->getUniformLocation("diffuseMap");
     // get attribute locations
     _goofyShaderProgramAttributeLocations.vPos              = _goofyShaderProgram->getAttributeLocation("vPos");
     _goofyShaderProgramAttributeLocations.vNormal           = _goofyShaderProgram->getAttributeLocation("vNormal");
+    _goofyShaderProgramAttributeLocations.vTexCoord         = _goofyShaderProgram->getAttributeLocation("inTexCoord");
 
     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.hitVector, glm::vec3(0));
     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.timeSince, 1);
@@ -320,6 +322,7 @@ void Lab08Engine::_createPlatform(GLuint vao, GLuint vbo, GLuint ibo, GLsizei &n
 
 void Lab08Engine::addBall(float x, float y, ballStyle s){
     Ball* newBall = new Ball(x, y, 0.25, 0, s);
+    newBall->rot = randomRotationMatrix();
     balls.emplace_back(newBall);
 }
 
@@ -480,17 +483,35 @@ void Lab08Engine::hit(int i, int j) const{
 }
 
 void Lab08Engine::drawBalls(glm::mat4 viewMtx, glm::mat4 projMtx) const{
+
     for( const Ball* ball : balls ){
-        _setMaterialProperties(CSCI441::Materials::WHITE_PLASTIC);
+        //_setMaterialProperties(CSCI441::Materials::WHITE_PLASTIC);
+        _goofyShaderProgram->useProgram();
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialAmbColor, glm::vec3(1,1,1));
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialDiffColor, glm::vec3(1,1,1));
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialSpecColor, glm::vec3(1,1,1));
         glm::mat4 modelMatrix;
         modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(ball->x, ball->r, ball->y));
+        modelMatrix = modelMatrix * ball->rot;
         _computeAndSendTransformationMatrices( _goofyShaderProgram,
                                                modelMatrix, viewMtx, projMtx,
                                                _goofyShaderProgramUniformLocations.mvpMatrix,
                                                _goofyShaderProgramUniformLocations.modelMatrix,
                                                _goofyShaderProgramUniformLocations.normalMatrix);
+        CSCI441::setVertexAttributeLocations(_goofyShaderProgramAttributeLocations.vPos, _goofyShaderProgramAttributeLocations.vNormal, _goofyShaderProgramAttributeLocations.vTexCoord);
+
+        if(ball->s == regular) {
+            glBindTexture(GL_TEXTURE_2D, _solidBallHandle);
+        }else if(ball->s == striped){
+            glBindTexture(GL_TEXTURE_2D, _stripeBallHandle);
+        }else if(ball->s == eight){
+            glBindTexture(GL_TEXTURE_2D, _8BallHandle);
+        }else{
+            glBindTexture(GL_TEXTURE_2D, _cueBallHandle);
+        }
 
         CSCI441::drawSolidSphere(ball->r,20,20);
+
     }
 
     //draw holes for testing
@@ -692,6 +713,11 @@ void Lab08Engine::mSetupScene() {
     _skyHandle = CSCI441::TextureUtils::loadAndRegisterTexture("textures/minesskyrev.png");
     _minesHandle = CSCI441::TextureUtils::loadAndRegisterTexture("textures/mines.png");
 
+    _cueBallHandle = CSCI441::TextureUtils::loadAndRegisterTexture("textures/cue.png");
+    _8BallHandle = CSCI441::TextureUtils::loadAndRegisterTexture("textures/8ball.png");
+    _solidBallHandle = CSCI441::TextureUtils::loadAndRegisterTexture("textures/solid.png");
+    _stripeBallHandle = CSCI441::TextureUtils::loadAndRegisterTexture("textures/stripe.png");
+
     //CUE BALL
 
     setupTable();
@@ -787,19 +813,6 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     drawStick(viewMtx, projMtx);
 
     //DRAW THE CUE BALL
-    _goofyShaderProgram->useProgram();
-    CSCI441::setVertexAttributeLocations(_goofyShaderProgramAttributeLocations.vPos, _goofyShaderProgramAttributeLocations.vNormal, -1);
-
-    // _setMaterialProperties(CSCI441::Materials::WHITE_PLASTIC);
-    // modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.5, 0));
-    // modelMatrix = glm::scale(modelMatrix, glm::vec3(0.2,0.2, 0.2));
-    // _computeAndSendTransformationMatrices( _goofyShaderProgram,
-    //                                         modelMatrix, viewMtx, projMtx,
-    //                                         _goofyShaderProgramUniformLocations.mvpMatrix,
-    //                                         _goofyShaderProgramUniformLocations.modelMatrix,
-    //                                         _goofyShaderProgramUniformLocations.normalMatrix);
-
-    // CSCI441::drawSolidSphere(1,20,20);
 
     drawBalls(viewMtx, projMtx);
 
@@ -1090,6 +1103,19 @@ void lab08_scroll_callback(GLFWwindow *window, double xOffset, double yOffset) {
         // pass the scroll offset through to the engine
         engine->handleScrollEvent(glm::vec2(xOffset, yOffset));
     }
+}
+
+glm::mat4 Lab08Engine::randomRotationMatrix() {
+
+    float angleX = glm::radians(static_cast<float>(rand() % 360));
+    float angleY = glm::radians(static_cast<float>(rand() % 360));
+    float angleZ = glm::radians(static_cast<float>(rand() % 360));
+
+    glm::mat4 rotationX = glm::rotate(glm::mat4(1.0f), angleX, glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 rotationY = glm::rotate(glm::mat4(1.0f), angleY, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 rotationZ = glm::rotate(glm::mat4(1.0f), angleZ, glm::vec3(0.0f, 0.0f, 1.0f));
+
+    return rotationZ * rotationY * rotationX;
 }
 
 Lab08Engine::Ball::Ball(float x, float y, float r, int tex, ballStyle s) {
