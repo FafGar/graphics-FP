@@ -283,6 +283,8 @@ private:
     /// \desc All the balls. Index 0 is the cue ball
     std::vector<Ball*> balls;
 
+    // Variables relating to tracking the game
+
     int sunkStriped = 0;
     int sunkRegular = 0;
     int sunkEight = 0;
@@ -290,16 +292,19 @@ private:
     int stripedPlayer = 0;
     int regularPlayer = 0;
 
-    // beginning with player 1
     int currentPlayer = 1;
+    int currentTurn = 0;
     // initially zero, then 1 or 2 for which player wins
     int winner = 0;
     // variable to track if balls can be shot or not
     bool canShoot = true;
+    bool myBallsHaveBeenHit = false;
+    // is a game happening rn
+    bool gamesUnlimitedGames = true;
 
     void addBall(float x, float y, ballStyle s);
 
-    void physics(float delta) const;
+    void physics(float delta);
 
     void drawBalls(glm::mat4 viewMtx, glm::mat4 projMtx) const;
 
@@ -355,6 +360,8 @@ private:
     void endGame();
 
     void easterEgg();
+
+    void checkWin();
 };
 
 void lab08_keyboard_callback(GLFWwindow *window, int key, int scancode, int action, int mods );

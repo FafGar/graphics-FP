@@ -38,7 +38,6 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
             case GLFW_KEY_ESCAPE:
                 setWindowShouldClose();
                 break;
-
                 // toggle between light types
             case GLFW_KEY_1:    // point light
             case GLFW_KEY_2:    // directional light
@@ -72,12 +71,17 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
                         balls[0]->vy = -hitVec.z;
                         // make it so you can't shoot until balls have stopped moving
                         canShoot = false;
+                        currentTurn++;
                     }
 
 
                     if(cueState >1) cueState = 0;
                 }
                 break;
+            case GLFW_KEY_R:
+                // reset the game
+                resetGame();
+
             default: break; // suppress CLion warning
         }
     }
@@ -380,7 +384,7 @@ bool Lab08Engine::ballNearHole(int i) const{
     return false;
 }
 
-void Lab08Engine::physics(float delta) const {
+void Lab08Engine::physics(float delta) {
 
     delta = 0.1;
     float w = 8.8;
@@ -416,7 +420,8 @@ void Lab08Engine::physics(float delta) const {
 
             if(i<j && (ball->moving || ball2->moving) && glm::distance(glm::vec2(ball->x, ball->y), glm::vec2(ball2->x, ball2->y)) < collideRadius){
                 hit(i,j);
-                std::cout << "hit" << std::endl;
+                // std::cout << "hit" << std::endl;
+                myBallsHaveBeenHit = true;
             }
         }
 
@@ -848,41 +853,69 @@ void Lab08Engine::_updateScene() {
     meterHeight += meterStep;
     if(meterHeight > 2 || meterHeight < 0.1) meterStep = -meterStep;
     sinkBalls();
-    if(stripedPlayer == 0 && regularPlayer == 0){
-        setPlayerBallTypes();
+    if(gamesUnlimitedGames){
+        eightBallDestructionMegaLoss();
+        if(stripedPlayer == 0 && regularPlayer == 0){
+            setPlayerBallTypes();
+        }
+        else{
+            checkWin();
+        }
     }
-    eightBallDestructionMegaLoss();
     physics(0.01);
     // check if balls are moving to update shoot status
-    if(areBallsMoving()){
-        canShoot = false;
-    }
-    else{
-        canShoot = true;
+    if(gamesUnlimitedGames) {
+        if (areBallsMoving()) {
+            canShoot = false;
+        } else {
+            canShoot = true;
+            // if after the balls stop moving after the first shot and no balls are hit, do the easter egg
+            if (currentTurn == 1) {
+                if (!myBallsHaveBeenHit) {
+                    easterEgg();
+                    // reset var so it only is called once
+                    myBallsHaveBeenHit = false;
+                }
+            }
+        }
     }
     _pArcballCam->setLookAtPoint( glm::vec3(balls[0]->x,0,balls[0]->y));
     _pArcballCam->recomputeOrientation();
 }
 
-// ends the game
+
 void Lab08Engine::endGame(){
     // TODO: signify the winner, give them dopamine somehow
+    std::cout << "you win" << std::endl;
+    std::cout << "sunk balls standard " << sunkRegular << " striped " << sunkStriped << " eight " << sunkEight << std::endl;
+    gamesUnlimitedGames = false;
     return;
 }
 
-// easter egg that appears if the first shot doesn't work
+void Lab08Engine::checkWin(){
+    if(sunkStriped == 8){
+        winner = stripedPlayer;
+        endGame();
+    }
+    else if(sunkRegular == 8){
+        winner = regularPlayer;
+        endGame();
+    }
+}
+
 void Lab08Engine::easterEgg(){
     // TODO: easter the egg
+    gamesUnlimitedGames = false;
     return;
 }
-// resets the variables and sets up the table again
+
 void Lab08Engine::resetGame(){
-    sunkEight, sunkRegular, sunkStriped, winner, stripedPlayer, regularPlayer = 0;
+    sunkEight, sunkRegular, sunkStriped, winner, stripedPlayer, regularPlayer, currentTurn = 0;
+    myBallsHaveBeenHit = false;
     currentPlayer = 1;
     setupTable();
 }
 
-// check if eight ball causes player to lose
 void Lab08Engine::eightBallDestructionMegaLoss(){
     if(sunkEight != 0){
         if(currentPlayer == 1){
@@ -898,12 +931,19 @@ void Lab08Engine::eightBallDestructionMegaLoss(){
 void Lab08Engine::setPlayerBallTypes(){
     if(sunkRegular > 0){
         regularPlayer = currentPlayer;
+        if (currentPlayer == 1) {
+            stripedPlayer = 2;
+        } else {
+            stripedPlayer = 1;
+        }
     }
-    if(currentPlayer == 1){
-        stripedPlayer = 2;
-    }
-    else{
-        stripedPlayer = 1;
+    else if(sunkStriped > 0) {
+        stripedPlayer = currentPlayer;
+        if (currentPlayer == 1) {
+            regularPlayer = 2;
+        } else {
+            regularPlayer = 1;
+        }
     }
 }
 bool Lab08Engine::areBallsMoving(){
