@@ -508,50 +508,64 @@ void Lab08Engine::drawBalls(glm::mat4 viewMtx, glm::mat4 projMtx) const{
 //    }
 }
 
-void Lab08Engine::drawStick(glm::mat4 viewMtx, glm::mat4 projMtx) const{
+void Lab08Engine::drawStick(glm::mat4 viewMtx, glm::mat4 projMtx) const {
 
-    if(cueState == 2){
+    if (cueState == 2) {
         return;
     }
 
     glm::vec3 hitVec = _pArcballCam->getPosition() - _pArcballCam->getLookAtPoint();
     hitVec = glm::normalize(hitVec);
-    float cueRot = atan2(hitVec.x,hitVec.z) + (3.1415 * 0.5);
+    float cueRot = atan2(hitVec.x, hitVec.z) + (3.1415 * 0.5);
     //std::cout << cueRot << std::endl;
-    glm::mat4 modelMatrix;
-    modelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(balls[0]->x,0.25,balls[0]->y));
-    modelMatrix = glm::rotate(modelMatrix, cueRot, glm::vec3(0,1,0));
-    modelMatrix = glm::rotate(modelMatrix, -0.1f, glm::vec3(0,0,1));
-    modelMatrix = glm::translate(modelMatrix, glm::vec3(-1,0,0));
-    glm::mat4 cueMtx = glm::translate(modelMatrix, glm::vec3(-meterHeight,0,0));
-    cueMtx = glm::scale(cueMtx, glm::vec3(0.1,0.1,0.1));
+    // don't draw cue and hands while the balls are rolling
+    if (canShoot) {
+        glm::mat4 modelMatrix;
+        modelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(balls[0]->x, 0.25, balls[0]->y));
+        modelMatrix = glm::rotate(modelMatrix, cueRot, glm::vec3(0, 1, 0));
+        modelMatrix = glm::rotate(modelMatrix, -0.1f, glm::vec3(0, 0, 1));
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(-1, 0, 0));
+        glm::mat4 cueMtx = glm::translate(modelMatrix, glm::vec3(-meterHeight, 0, 0));
+        cueMtx = glm::scale(cueMtx, glm::vec3(0.1, 0.1, 0.1));
 
-    _computeAndSendTransformationMatrices( _goodShaderProgram,
-                                           cueMtx, viewMtx, projMtx,
-                                           _goodShaderProgramUniformLocations.mvpMatrix,
-                                           _goodShaderProgramUniformLocations.modelMatrix,
-                                           _goodShaderProgramUniformLocations.normalMatrix);
-    _setMaterialProperties(CSCI441::Materials::WHITE_PLASTIC);
-    stick->draw(_goodShaderProgram->getShaderProgramHandle());
+        _computeAndSendTransformationMatrices(_goodShaderProgram,
+                                              cueMtx, viewMtx, projMtx,
+                                              _goodShaderProgramUniformLocations.mvpMatrix,
+                                              _goodShaderProgramUniformLocations.modelMatrix,
+                                              _goodShaderProgramUniformLocations.normalMatrix);
+        _setMaterialProperties(CSCI441::Materials::WHITE_PLASTIC);
+        stick->draw(_goodShaderProgram->getShaderProgramHandle());
 
-    glm::mat4 leftHandMtx = glm::translate(modelMatrix, glm::vec3(-2,0,0));
-    leftHandMtx = glm::scale(leftHandMtx, glm::vec3(0.1,0.1,0.1));
-    leftHandMtx = glm::scale(leftHandMtx, glm::vec3(1,1,-1));
-    _computeAndSendTransformationMatrices( _goodShaderProgram,
-                                           leftHandMtx, viewMtx, projMtx,
-                                           _goodShaderProgramUniformLocations.mvpMatrix,
-                                           _goodShaderProgramUniformLocations.modelMatrix,
-                                           _goodShaderProgramUniformLocations.normalMatrix);
-    hand->draw(_goodShaderProgram->getShaderProgramHandle());
+        glm::mat4 leftHandMtx = glm::translate(modelMatrix, glm::vec3(-2, 0, 0));
+        leftHandMtx = glm::scale(leftHandMtx, glm::vec3(0.1, 0.1, 0.1));
+        leftHandMtx = glm::scale(leftHandMtx, glm::vec3(1, 1, -1));
 
-    glm::mat4 rightHandMtx = glm::translate(modelMatrix, glm::vec3(-5 - meterHeight,0,0));
-    rightHandMtx = glm::scale(rightHandMtx, glm::vec3(0.1,0.1,0.1));
-    _computeAndSendTransformationMatrices( _goodShaderProgram,
-                                           rightHandMtx, viewMtx, projMtx,
-                                           _goodShaderProgramUniformLocations.mvpMatrix,
-                                           _goodShaderProgramUniformLocations.modelMatrix,
-                                           _goodShaderProgramUniformLocations.normalMatrix);
-    hand->draw(_goodShaderProgram->getShaderProgramHandle());
+        if (currentPlayer == 1) {
+            _goodShaderProgram->setProgramUniform("materialDiffColor", glm::vec3(0.8, 0.1, 0.1));
+        } else {
+            _goodShaderProgram->setProgramUniform("materialDiffColor", glm::vec3(0.1, 0.1, 0.8));
+        }
+        _computeAndSendTransformationMatrices(_goodShaderProgram,
+                                              leftHandMtx, viewMtx, projMtx,
+                                              _goodShaderProgramUniformLocations.mvpMatrix,
+                                              _goodShaderProgramUniformLocations.modelMatrix,
+                                              _goodShaderProgramUniformLocations.normalMatrix);
+        hand->draw(_goodShaderProgram->getShaderProgramHandle());
+
+        if (currentPlayer == 1) {
+            _goodShaderProgram->setProgramUniform("materialDiffColor", glm::vec3(0.8, 0.1, 0.1));
+        } else {
+            _goodShaderProgram->setProgramUniform("materialDiffColor", glm::vec3(0.1, 0.1, 0.8));
+        }
+        glm::mat4 rightHandMtx = glm::translate(modelMatrix, glm::vec3(-5 - meterHeight, 0, 0));
+        rightHandMtx = glm::scale(rightHandMtx, glm::vec3(0.1, 0.1, 0.1));
+        _computeAndSendTransformationMatrices(_goodShaderProgram,
+                                              rightHandMtx, viewMtx, projMtx,
+                                              _goodShaderProgramUniformLocations.mvpMatrix,
+                                              _goodShaderProgramUniformLocations.modelMatrix,
+                                              _goodShaderProgramUniformLocations.normalMatrix);
+        hand->draw(_goodShaderProgram->getShaderProgramHandle());
+    }
 }
 
 void Lab08Engine::setupTable(){
@@ -864,11 +878,20 @@ void Lab08Engine::_updateScene() {
     }
     physics(0.01);
     // check if balls are moving to update shoot status
-    if(gamesUnlimitedGames) {
+    if(gamesUnlimitedGames){
+        std::cout << "games";
         if (areBallsMoving()) {
             canShoot = false;
         } else {
-            canShoot = true;
+            // switch players
+            if(!canShoot) {
+                canShoot = true;
+                if (currentPlayer == 1) {
+                    currentPlayer = 2;
+                } else {
+                    currentPlayer = 1;
+                }
+            }
             // if after the balls stop moving after the first shot and no balls are hit, do the easter egg
             if (currentTurn == 1) {
                 if (!myBallsHaveBeenHit) {
@@ -879,8 +902,10 @@ void Lab08Engine::_updateScene() {
             }
         }
     }
-    _pArcballCam->setLookAtPoint( glm::vec3(balls[0]->x,0,balls[0]->y));
-    _pArcballCam->recomputeOrientation();
+    if(canShoot){
+        _pArcballCam->setLookAtPoint( glm::vec3(balls[0]->x,0,balls[0]->y));
+        _pArcballCam->recomputeOrientation();
+    }
 }
 
 
