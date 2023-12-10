@@ -825,7 +825,14 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
         modelMatrix = glm::mat4(1.0f);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(0,-0.85,0));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(meterHeight,0.4,1));
+        _flatShaderProgram->setProgramUniform("color", glm::vec3(0.2,0.9,0.1));
+        _computeAndSendTransformationMatrices(_flatShaderProgram,modelMatrix,glm::mat4(1.f),glm::mat4(1.f),_flatShaderProgramUniformLocations.mvpMatrix);
+        CSCI441::drawSolidCube(0.25);
 
+        modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(0,-0.85,0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(2,0.4,1));
+        _flatShaderProgram->setProgramUniform("color", glm::vec3(0.9,0.1,0.2));
         _computeAndSendTransformationMatrices(_flatShaderProgram,modelMatrix,glm::mat4(1.f),glm::mat4(1.f),_flatShaderProgramUniformLocations.mvpMatrix);
         CSCI441::drawSolidCube(0.25);
     }
