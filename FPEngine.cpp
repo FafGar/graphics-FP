@@ -338,7 +338,7 @@ void Lab08Engine::sinkBalls(){
         for (int j=0; j < holes.size(); j++){
             Hole* hole = holes[j];
             float dist = glm::distance(glm::vec2(ball->x,ball->y),glm::vec2(hole->x,hole->y));
-            if(dist < hole->r*2){
+            if(dist < hole->r{
                 // store values of sunk balls before deletion
                 switch(ball->s) {
                     case striped:
