@@ -49,6 +49,8 @@ private:
     CSCI441::ModelLoader *poolWood;
     CSCI441::ModelLoader *poolHoles;
     CSCI441::ModelLoader *mines;
+    CSCI441::ModelLoader *hand;
+    CSCI441::ModelLoader *stick;
 
     //***************************************************************************
     // Engine Setup
@@ -284,6 +286,8 @@ private:
     void physics(float delta) const;
 
     void drawBalls(glm::mat4 viewMtx, glm::mat4 projMtx) const;
+
+    void drawStick(glm::mat4 viewMtx, glm::mat4 projMtx) const;
 
     void hit(int i, int j) const;
 

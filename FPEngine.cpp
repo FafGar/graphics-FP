@@ -251,8 +251,13 @@ void Lab08Engine::mSetupBuffers() {
 
     mines = new CSCI441::ModelLoader();
     mines->loadModelFile("models/maps2.obj");
-    //mines->loadModelFile("models/suzanne.obj");
     mines->setAttributeLocations(_textureShaderProgramAttribute.vPos, _textureShaderProgramAttribute.vNormal, _textureShaderProgramAttribute.vTexCoord);
+
+    hand = new CSCI441::ModelLoader("models/hand.obj");
+    hand->setAttributeLocations(_goodShaderProgramAttributeLocations.vPos, _goodShaderProgramAttributeLocations.vNormal);
+
+    stick = new CSCI441::ModelLoader("models/stick.obj");
+    stick->setAttributeLocations(_goodShaderProgramAttributeLocations.vPos, _goodShaderProgramAttributeLocations.vNormal);
 
     // ------------------------------------------------------------------------------------------------------
     // generate all of our VAO/VBO/IBO descriptors
@@ -449,6 +454,46 @@ void Lab08Engine::drawBalls(glm::mat4 viewMtx, glm::mat4 projMtx) const{
 //
 //        CSCI441::drawSolidSphere(hole->r,20,20);
 //    }
+}
+
+void Lab08Engine::drawStick(glm::mat4 viewMtx, glm::mat4 projMtx) const{
+    glm::vec3 hitVec = _pArcballCam->getPosition() - _pArcballCam->getLookAtPoint();
+    hitVec = glm::normalize(hitVec);
+    float cueRot = atan2(hitVec.x,hitVec.z) + (3.1415 * 0.5);
+    //std::cout << cueRot << std::endl;
+    glm::mat4 modelMatrix;
+    modelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(balls[0]->x,0.25,balls[0]->y));
+    modelMatrix = glm::rotate(modelMatrix, cueRot, glm::vec3(0,1,0));
+    modelMatrix = glm::rotate(modelMatrix, -0.1f, glm::vec3(0,0,1));
+    modelMatrix = glm::translate(modelMatrix, glm::vec3(-1,0,0));
+    glm::mat4 cueMtx = glm::scale(modelMatrix, glm::vec3(0.1,0.1,0.1));
+
+    _computeAndSendTransformationMatrices( _goodShaderProgram,
+                                           cueMtx, viewMtx, projMtx,
+                                           _goodShaderProgramUniformLocations.mvpMatrix,
+                                           _goodShaderProgramUniformLocations.modelMatrix,
+                                           _goodShaderProgramUniformLocations.normalMatrix);
+    _setMaterialProperties(CSCI441::Materials::WHITE_PLASTIC);
+    stick->draw(_goodShaderProgram->getShaderProgramHandle());
+
+    glm::mat4 leftHandMtx = glm::translate(modelMatrix, glm::vec3(-2,0,0));
+    leftHandMtx = glm::scale(leftHandMtx, glm::vec3(0.1,0.1,0.1));
+    leftHandMtx = glm::scale(leftHandMtx, glm::vec3(1,1,-1));
+    _computeAndSendTransformationMatrices( _goodShaderProgram,
+                                           leftHandMtx, viewMtx, projMtx,
+                                           _goodShaderProgramUniformLocations.mvpMatrix,
+                                           _goodShaderProgramUniformLocations.modelMatrix,
+                                           _goodShaderProgramUniformLocations.normalMatrix);
+    hand->draw(_goodShaderProgram->getShaderProgramHandle());
+
+    glm::mat4 rightHandMtx = glm::translate(modelMatrix, glm::vec3(-5,0,0));
+    rightHandMtx = glm::scale(rightHandMtx, glm::vec3(0.1,0.1,0.1));
+    _computeAndSendTransformationMatrices( _goodShaderProgram,
+                                           rightHandMtx, viewMtx, projMtx,
+                                           _goodShaderProgramUniformLocations.mvpMatrix,
+                                           _goodShaderProgramUniformLocations.modelMatrix,
+                                           _goodShaderProgramUniformLocations.normalMatrix);
+    hand->draw(_goodShaderProgram->getShaderProgramHandle());
 }
 
 void Lab08Engine::setupTable(){
@@ -657,6 +702,8 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     _setMaterialProperties(CSCI441::Materials::BLACK_RUBBER);
     poolHoles->draw(_goodShaderProgram->getShaderProgramHandle());
 
+    //draw cue stick
+    drawStick(viewMtx, projMtx);
 
     //DRAW THE CUE BALL
     _goofyShaderProgram->useProgram();
@@ -674,6 +721,7 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     // CSCI441::drawSolidSphere(1,20,20);
 
     drawBalls(viewMtx, projMtx);
+
 
     _flatShaderProgram->useProgram();
     
