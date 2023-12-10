@@ -59,7 +59,11 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
                     cueState++;
 
                     if(cueState == 2){
-                        glm::vec3 hitVec = _pArcballCam->getPosition() - _pArcballCam->getLookAtPoint();
+                        glm::vec3 camPos = _pArcballCam->getPosition();
+                        camPos.y = 0;
+                        glm::vec3 lookPos = _pArcballCam->getLookAtPoint();
+                        lookPos.y = 0;
+                        glm::vec3 hitVec = camPos - lookPos;
                         _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.hitVector, glm::normalize(hitVec));
                         glfwSetTime(0);
 
@@ -333,6 +337,31 @@ void Lab08Engine::sinkBalls(){
     }
 }
 
+bool Lab08Engine::ballNearHole(int i) const{
+    Ball* ball = balls[i];
+
+    for (int j=0; j < holes.size(); j++){
+        Hole* hole = holes[j];
+        float dist = glm::distance(glm::vec2(ball->x,ball->y),glm::vec2(hole->x,hole->y));
+        if(dist < (hole->r + ball->r)){
+            glm::vec2 vel = glm::vec2(ball->vx,ball->vy);
+            float speed = glm::length(vel);
+
+            glm::vec2 newVel = glm::normalize(glm::vec2(hole->x,hole->y) - glm::vec2(ball->x,ball->y));
+
+            if(glm::acos(glm::dot(newVel,vel)) < glm::radians(65.0)) {
+                newVel *= speed;
+                ball->vx = newVel.x;
+                ball->vy = newVel.y;
+                return true;
+            }else{
+                return false;
+            }
+        }
+    }
+    return false;
+}
+
 void Lab08Engine::physics(float delta) const {
 
     delta = 0.1;
@@ -373,7 +402,7 @@ void Lab08Engine::physics(float delta) const {
             }
         }
 
-        if(ball->moving){
+        if(ball->moving && !ballNearHole(i)){
             float bounce = -0.9;
             if(ball->x < (left + ball->r)){
                 ball->vx *= bounce;

@@ -305,6 +305,8 @@ private:
 
     void sinkBalls();
 
+    bool ballNearHole(int i) const;
+
     void addHole(float x, float y);
 
     void setupTable();
