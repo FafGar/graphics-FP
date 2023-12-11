@@ -1071,8 +1071,15 @@ void Lab08Engine::easterEgg(){
 }
 
 void Lab08Engine::resetGame(){
-    sunkEight, sunkRegular, sunkStriped, winner, stripedPlayer,
-    regularPlayer, sunkThisTurnStriped, sunkThisTurnRegular, currentTurn = 0;
+    sunkEight = 0;
+    sunkRegular = 0;
+    sunkStriped = 0;
+    winner = 0;
+    stripedPlayer = 0;
+    regularPlayer = 0;
+    sunkThisTurnStriped = 0;
+    sunkThisTurnRegular = 0;
+    currentTurn = 0;
     myBallsHaveBeenHit = false;
     currentPlayer = 1;
     canShoot = true;
