@@ -339,9 +339,9 @@ void Lab08Engine::addHole(float x, float y){
 void Lab08Engine::sinkBalls(){
     for(int i = balls.size()-1; i >= 0; i--){
         Ball* ball = balls[i];
-
         for (int j=0; j < holes.size(); j++){
             Hole* hole = holes[j];
+            bool deleteBall = true;
             float dist = glm::distance(glm::vec2(ball->x,ball->y),glm::vec2(hole->x,hole->y));
             if(dist < hole->r){
                 // store values of sunk balls before deletion
@@ -358,12 +358,22 @@ void Lab08Engine::sinkBalls(){
                         sunkEight++;
                         break;
                     case cue:
+                        deleteBall = false;
                         break;
                     default:
                         break;
                 }
-                delete ball;
-                balls.erase(balls.begin() + i);
+                if(deleteBall){
+                    delete ball;
+                    balls.erase(balls.begin() + i);
+                }
+                else{
+                    ball->x = -4;
+                    ball->y = 0;
+                    ball->vx = 0;
+                    ball->vy = 0;
+                    ball->moving = false;
+                }
             }
         }
     }
