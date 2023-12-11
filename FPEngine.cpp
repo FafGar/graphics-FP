@@ -54,7 +54,7 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
                 }
                 break;
 
-            case GLFW_KEY_H:
+            case GLFW_KEY_SPACE:
                 if(_goofyShaderProgram && canShoot){
                     cueState++;
 
