@@ -661,25 +661,15 @@ void Lab08Engine::setupTable(){
 
     float trix = (hh) + ((static_cast<float>(rand()) / RAND_MAX - 0.5) * 0.1);
     float triy = (0) + ((static_cast<float>(rand()) / RAND_MAX - 0.5) * 0.1);
-    int ballcount = 1;
-    int balltype = 2;
+    int ballcount = 0;
 
     addBall(-hh,0, ballStyle::cue);
     // balls[0]->vx = 1.0;
 
     for(int i = 0; i<5; i++){
-        ballcount = ballcount + 1;
 
         for (int j = 0; j<(i+1); j++) {
-            if(i == 3 && j == 2){
-                balltype = 4;
-            }else if((ballcount) % 2 == 0){
-                balltype = 2 ;
-                ballcount = ballcount + 1;
-            }else{
-                balltype = 3;
-                ballcount = ballcount + 1;
-            }
+            ballcount = ballcount + 1;
 
             if(i == 5 && j == 3){
                 ballcount = ballcount - 1;
@@ -688,7 +678,7 @@ void Lab08Engine::setupTable(){
             float xpos = trix + (0.45*(i-2));
             float ypos = triy + (0.51*(j)) - (0.255*(i));
             ballStyle style;
-            if(ballcount == 8){
+            if(ballcount == 5){
                 style = eight;
             }
             else if(ballcount % 2 == 0){
