@@ -30,7 +30,7 @@ FafGar - animations, game rules, game flow
 
 Ena - shaders, models, physics
 
-GfxMan - game flow
+Graphicsman - game tracking, camera magic, ball handling
 
 How long did this assignment take you?
 Combined we spent probaby around 18 hours on this project.
