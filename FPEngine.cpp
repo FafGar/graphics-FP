@@ -97,46 +97,52 @@ void Lab08Engine::handleMouseButtonEvent(GLint button, GLint action) {
 }
 
 void Lab08Engine::handleCursorPositionEvent(glm::vec2 currMousePosition) {
-    // if mouse hasn't moved in the window, prevent camera from flipping out
-    if(fabs(_mousePosition.x - MOUSE_UNINITIALIZED) <= 0.000001f) {
-        _mousePosition = currMousePosition;
-    }
-
-    // active motion - if the left mouse button is being held down while the mouse is moving
-    if(_leftMouseButtonState == GLFW_PRESS) {
-        // if shift is held down, update our camera radius
-        if( _keys[GLFW_KEY_LEFT_SHIFT] || _keys[GLFW_KEY_RIGHT_SHIFT] ) {
-            GLfloat totChgSq = (currMousePosition.x - _mousePosition.x) + (currMousePosition.y - _mousePosition.y);
-            _pArcballCam->moveForward(totChgSq * 0.01f );
+    if (canShoot) {
+        // if mouse hasn't moved in the window, prevent camera from flipping out
+        if (fabs(_mousePosition.x - MOUSE_UNINITIALIZED) <= 0.000001f) {
+            _mousePosition = currMousePosition;
         }
-            // otherwise, update our camera angles theta & phi
-        else {
-            if(cueState != 1) {
-                // rotate the camera by the distance the mouse moved
-                _pArcballCam->rotate((currMousePosition.x - _mousePosition.x) * 0.005f,
-                                     (_mousePosition.y - currMousePosition.y) * -0.005f);
+
+        // active motion - if the left mouse button is being held down while the mouse is moving
+        if (_leftMouseButtonState == GLFW_PRESS) {
+            // if shift is held down, update our camera radius
+            if (_keys[GLFW_KEY_LEFT_SHIFT] || _keys[GLFW_KEY_RIGHT_SHIFT]) {
+                GLfloat totChgSq = (currMousePosition.x - _mousePosition.x) + (currMousePosition.y - _mousePosition.y);
+                _pArcballCam->moveForward(totChgSq * 0.01f);
+            }
+                // otherwise, update our camera angles theta & phi
+            else {
+                if (cueState != 1) {
+                    // rotate the camera by the distance the mouse moved
+                    _pArcballCam->rotate((currMousePosition.x - _mousePosition.x) * 0.005f,
+                                         (_mousePosition.y - currMousePosition.y) * -0.005f);
+                }
+            }
+
+            // ensure shader program is not null
+            if (_goodShaderProgram) {
+                // set the eye position - needed for specular reflection
+                _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.eyePos,
+                                                      _pArcballCam->getPosition());
+            }
+            if (_goofyShaderProgram) {
+                // set the eye position - needed for specular reflection
+                _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.eyePos,
+                                                       _pArcballCam->getPosition());
             }
         }
 
-        // ensure shader program is not null
-        if(_goodShaderProgram) {
-            // set the eye position - needed for specular reflection
-            _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.eyePos, _pArcballCam->getPosition());
-        }
-        if(_goofyShaderProgram) {
-            // set the eye position - needed for specular reflection
-            _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.eyePos, _pArcballCam->getPosition());
-        }
+        // update the mouse position
+        _mousePosition = currMousePosition;
     }
-
-    // update the mouse position
-    _mousePosition = currMousePosition;
 }
 
 void Lab08Engine::handleScrollEvent(glm::vec2 offset) {
-    // update the camera radius in/out
-    GLfloat totChgSq = offset.y;
-    _pArcballCam->moveForward(totChgSq * 1.0f );
+    if(canShoot) {
+        // update the camera radius in/out
+        GLfloat totChgSq = offset.y;
+        _pArcballCam->moveForward(totChgSq * 1.0f);
+    }
 }
 
 //*************************************************************************************
@@ -698,7 +704,7 @@ void Lab08Engine::mSetupScene() {
     // set up camera
     _pArcballCam = new CSCI441::ArcballCam();
     _pArcballCam->setLookAtPoint(glm::vec3(0.0f, 0.0f, 0.0f));
-    _pArcballCam->setTheta(3.52f);
+    _pArcballCam->setTheta(4.725f);
     _pArcballCam->setPhi(1.9f);
     _pArcballCam->setRadius(15.0f);
     _pArcballCam->recomputeOrientation();
@@ -876,7 +882,7 @@ void Lab08Engine::_drawBallType(){
         glm::mat4 modelMatrix = glm::mat4(1.0f);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(0.85,-0.8,0));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(1,1,1));
-
+        modelMatrix = glm::rotate(modelMatrix, 1.5f, glm::vec3(0,1,0));
         _computeAndSendTransformationMatrices( _goofyShaderProgram,
                                                modelMatrix, glm::mat4(1.0f), glm::mat4(1.0f),
                                                _goofyShaderProgramUniformLocations.mvpMatrix,
@@ -894,6 +900,7 @@ void Lab08Engine::_drawBallType(){
         glm::mat4 modelMatrix = glm::mat4(1.0f);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(0.85,-0.8,0));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(1,1,1));
+        modelMatrix = glm::rotate(modelMatrix, 1.5f, glm::vec3(0,1,0));
 
         _computeAndSendTransformationMatrices( _goofyShaderProgram,
                                                modelMatrix, glm::mat4(1.0f), glm::mat4(1.0f),
@@ -974,6 +981,12 @@ void Lab08Engine::_updateScene() {
             }
             else if(!canShoot) {
                 canShoot = true;
+                // set camera back after shifting
+                _pArcballCam->setPhi(storePhi);
+                _pArcballCam->setTheta(storeTheta);
+                _pArcballCam->setRadius(storeRad);
+                _pArcballCam->recomputeOrientation();
+                stored = false;
                 // check who's turn it is
                 checkSinkTurn();
             }
@@ -982,6 +995,19 @@ void Lab08Engine::_updateScene() {
     }
     if(canShoot){
         _pArcballCam->setLookAtPoint( glm::vec3(balls[0]->x,0,balls[0]->y));
+        _pArcballCam->recomputeOrientation();
+    }
+    else{
+        if(!stored){
+            storePhi = _pArcballCam->getPhi();
+            storeTheta = _pArcballCam->getTheta();
+            storeRad = _pArcballCam->getRadius();
+            stored = true;
+        }
+        _pArcballCam->setPhi(10.0f);
+        _pArcballCam->setTheta(10.0f);
+        _pArcballCam->setRadius(20.0f);
+        _pArcballCam->setLookAtPoint( glm::vec3(0,0,0));
         _pArcballCam->recomputeOrientation();
     }
 }

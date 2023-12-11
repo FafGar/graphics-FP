@@ -298,6 +298,11 @@ private:
     int sunkRegular = 0;
     int sunkEight = 0;
 
+    float storeTheta;
+    float storePhi;
+    float storeRad;
+    bool stored = false;
+
     int sunkThisTurnStriped = 0;
     int sunkThisTurnRegular = 0;
 
