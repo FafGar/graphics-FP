@@ -382,6 +382,8 @@ private:
     void checkWin();
 
     void checkSinkTurn();
+
+    void _drawBallType();
 };
 
 void lab08_keyboard_callback(GLFWwindow *window, int key, int scancode, int action, int mods );

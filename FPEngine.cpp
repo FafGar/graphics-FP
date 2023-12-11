@@ -866,6 +866,64 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     }
 }
 
+void Lab08Engine::_drawBallType(){
+    if(currentPlayer == stripedPlayer){
+        _goofyShaderProgram->useProgram();
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialAmbColor, glm::vec3(1,1,1));
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialDiffColor, glm::vec3(1,1,1));
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialSpecColor, glm::vec3(1,1,1));
+
+        glm::mat4 modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(0.85,-0.8,0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(1,1,1));
+
+        _computeAndSendTransformationMatrices( _goofyShaderProgram,
+                                               modelMatrix, glm::mat4(1.0f), glm::mat4(1.0f),
+                                               _goofyShaderProgramUniformLocations.mvpMatrix,
+                                               _goofyShaderProgramUniformLocations.modelMatrix,
+                                               _goofyShaderProgramUniformLocations.normalMatrix);
+        glBindTexture(GL_TEXTURE_2D, _stripeBallHandle);
+        CSCI441::drawSolidSphere(0.1,20,20);
+    }
+    else if(currentPlayer == regularPlayer){
+        _goofyShaderProgram->useProgram();
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialAmbColor, glm::vec3(1,1,1));
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialDiffColor, glm::vec3(1,1,1));
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialSpecColor, glm::vec3(1,1,1));
+
+        glm::mat4 modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(0.85,-0.8,0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(1,1,1));
+
+        _computeAndSendTransformationMatrices( _goofyShaderProgram,
+                                               modelMatrix, glm::mat4(1.0f), glm::mat4(1.0f),
+                                               _goofyShaderProgramUniformLocations.mvpMatrix,
+                                               _goofyShaderProgramUniformLocations.modelMatrix,
+                                               _goofyShaderProgramUniformLocations.normalMatrix);
+
+        glBindTexture(GL_TEXTURE_2D, _solidBallHandle);
+        CSCI441::drawSolidSphere(0.1,20,20);
+    }
+    else{
+        _goofyShaderProgram->useProgram();
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialAmbColor, glm::vec3(1,1,1));
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialDiffColor, glm::vec3(1,1,1));
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialSpecColor, glm::vec3(1,1,1));
+
+        glm::mat4 modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(0.85,-0.8,0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(1,1,1));
+        modelMatrix = glm::rotate(modelMatrix, 1.5f, glm::vec3(0,1,0));
+        _computeAndSendTransformationMatrices( _goofyShaderProgram,
+                                               modelMatrix, glm::mat4(1.0f), glm::mat4(1.0f),
+                                               _goofyShaderProgramUniformLocations.mvpMatrix,
+                                               _goofyShaderProgramUniformLocations.modelMatrix,
+                                               _goofyShaderProgramUniformLocations.normalMatrix);
+
+        glBindTexture(GL_TEXTURE_2D, _8BallHandle);
+        CSCI441::drawSolidSphere(0.1,20,20);
+    }
+}
 void Lab08Engine::_updateScene() {
     //update delta time
     auto now = std::chrono::steady_clock::now();
@@ -903,25 +961,23 @@ void Lab08Engine::_updateScene() {
         }
     }
     physics(deltaTime);
+    _drawBallType();
     // check if balls are moving to update shoot status
     if(gamesUnlimitedGames){
         //std::cout << "games";
         if (areBallsMoving()) {
             canShoot = false;
         } else {
-            if(!canShoot) {
+            if (currentTurn == 1 && !myBallsHaveBeenHit) {
+                    easterEgg();
+                    myBallsHaveBeenHit = false;
+            }
+            else if(!canShoot) {
                 canShoot = true;
                 // check who's turn it is
                 checkSinkTurn();
             }
             // if after the balls stop moving after the first shot and no balls are hit, do the easter egg
-            if (currentTurn == 1) {
-                if (!myBallsHaveBeenHit) {
-                    easterEgg();
-                    // reset var so it only is called once
-                    myBallsHaveBeenHit = false;
-                }
-            }
         }
     }
     if(canShoot){
@@ -980,6 +1036,11 @@ void Lab08Engine::checkWin(){
 void Lab08Engine::easterEgg(){
     // TODO: easter the egg
     gamesUnlimitedGames = false;
+    for( Ball* ball : balls ){
+        ball->vx = (rand()%20)-10;
+        ball->vy = (rand()%20)-10;
+        // reset var so it only is called once
+    }
     return;
 }
 
