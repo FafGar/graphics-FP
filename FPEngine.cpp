@@ -849,12 +849,22 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
     _flatShaderProgram->useProgram();
 
     if(cueState == 1){
+        //draw power meter
         modelMatrix = glm::mat4(1.0f);
         modelMatrix = glm::translate(modelMatrix, glm::vec3(-0.85,-1,0));
         modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4,meterHeight*2,1));
 
         _computeAndSendTransformationMatrices(_flatShaderProgram,modelMatrix,glm::mat4(1.f),glm::mat4(1.f),_flatShaderProgramUniformLocations.mvpMatrix);
         _flatShaderProgram->setProgramUniform(_flatShaderProgramUniformLocations.color, glm::vec3(meterHeight/2, 0.6/meterHeight,0.1));
+        CSCI441::drawSolidCube(0.25);
+
+        //draw meter background
+        modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(-0.85,-1,0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.45,4.05,1));
+
+        _computeAndSendTransformationMatrices(_flatShaderProgram,modelMatrix,glm::mat4(1.f),glm::mat4(1.f),_flatShaderProgramUniformLocations.mvpMatrix);
+        _flatShaderProgram->setProgramUniform(_flatShaderProgramUniformLocations.color, glm::vec3(0,0,0));
         CSCI441::drawSolidCube(0.25);
     }
 }
