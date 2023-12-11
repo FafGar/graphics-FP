@@ -93,46 +93,52 @@ void Lab08Engine::handleMouseButtonEvent(GLint button, GLint action) {
 }
 
 void Lab08Engine::handleCursorPositionEvent(glm::vec2 currMousePosition) {
-    // if mouse hasn't moved in the window, prevent camera from flipping out
-    if(fabs(_mousePosition.x - MOUSE_UNINITIALIZED) <= 0.000001f) {
-        _mousePosition = currMousePosition;
-    }
-
-    // active motion - if the left mouse button is being held down while the mouse is moving
-    if(_leftMouseButtonState == GLFW_PRESS) {
-        // if shift is held down, update our camera radius
-        if( _keys[GLFW_KEY_LEFT_SHIFT] || _keys[GLFW_KEY_RIGHT_SHIFT] ) {
-            GLfloat totChgSq = (currMousePosition.x - _mousePosition.x) + (currMousePosition.y - _mousePosition.y);
-            _pArcballCam->moveForward(totChgSq * 0.01f );
+    if (canShoot) {
+        // if mouse hasn't moved in the window, prevent camera from flipping out
+        if (fabs(_mousePosition.x - MOUSE_UNINITIALIZED) <= 0.000001f) {
+            _mousePosition = currMousePosition;
         }
-            // otherwise, update our camera angles theta & phi
-        else {
-            if(cueState != 1) {
-                // rotate the camera by the distance the mouse moved
-                _pArcballCam->rotate((currMousePosition.x - _mousePosition.x) * 0.005f,
-                                     (_mousePosition.y - currMousePosition.y) * -0.005f);
+
+        // active motion - if the left mouse button is being held down while the mouse is moving
+        if (_leftMouseButtonState == GLFW_PRESS) {
+            // if shift is held down, update our camera radius
+            if (_keys[GLFW_KEY_LEFT_SHIFT] || _keys[GLFW_KEY_RIGHT_SHIFT]) {
+                GLfloat totChgSq = (currMousePosition.x - _mousePosition.x) + (currMousePosition.y - _mousePosition.y);
+                _pArcballCam->moveForward(totChgSq * 0.01f);
+            }
+                // otherwise, update our camera angles theta & phi
+            else {
+                if (cueState != 1) {
+                    // rotate the camera by the distance the mouse moved
+                    _pArcballCam->rotate((currMousePosition.x - _mousePosition.x) * 0.005f,
+                                         (_mousePosition.y - currMousePosition.y) * -0.005f);
+                }
+            }
+
+            // ensure shader program is not null
+            if (_goodShaderProgram) {
+                // set the eye position - needed for specular reflection
+                _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.eyePos,
+                                                      _pArcballCam->getPosition());
+            }
+            if (_goofyShaderProgram) {
+                // set the eye position - needed for specular reflection
+                _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.eyePos,
+                                                       _pArcballCam->getPosition());
             }
         }
 
-        // ensure shader program is not null
-        if(_goodShaderProgram) {
-            // set the eye position - needed for specular reflection
-            _goodShaderProgram->setProgramUniform(_goodShaderProgramUniformLocations.eyePos, _pArcballCam->getPosition());
-        }
-        if(_goofyShaderProgram) {
-            // set the eye position - needed for specular reflection
-            _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.eyePos, _pArcballCam->getPosition());
-        }
+        // update the mouse position
+        _mousePosition = currMousePosition;
     }
-
-    // update the mouse position
-    _mousePosition = currMousePosition;
 }
 
 void Lab08Engine::handleScrollEvent(glm::vec2 offset) {
-    // update the camera radius in/out
-    GLfloat totChgSq = offset.y;
-    _pArcballCam->moveForward(totChgSq * 1.0f );
+    if(canShoot) {
+        // update the camera radius in/out
+        GLfloat totChgSq = offset.y;
+        _pArcballCam->moveForward(totChgSq * 1.0f);
+    }
 }
 
 //*************************************************************************************
@@ -710,7 +716,7 @@ void Lab08Engine::mSetupScene() {
     // set up camera
     _pArcballCam = new CSCI441::ArcballCam();
     _pArcballCam->setLookAtPoint(glm::vec3(0.0f, 0.0f, 0.0f));
-    _pArcballCam->setTheta(3.52f);
+    _pArcballCam->setTheta(4.725f);
     _pArcballCam->setPhi(1.9f);
     _pArcballCam->setRadius(15.0f);
     _pArcballCam->recomputeOrientation();
@@ -878,6 +884,65 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx)  {
     }
 }
 
+void Lab08Engine::_drawBallType(){
+    if(currentPlayer == stripedPlayer){
+        _goofyShaderProgram->useProgram();
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialAmbColor, glm::vec3(1,1,1));
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialDiffColor, glm::vec3(1,1,1));
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialSpecColor, glm::vec3(1,1,1));
+
+        glm::mat4 modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(0.85,-0.8,0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(1,1,1));
+        modelMatrix = glm::rotate(modelMatrix, 1.5f, glm::vec3(0,1,0));
+        _computeAndSendTransformationMatrices( _goofyShaderProgram,
+                                               modelMatrix, glm::mat4(1.0f), glm::mat4(1.0f),
+                                               _goofyShaderProgramUniformLocations.mvpMatrix,
+                                               _goofyShaderProgramUniformLocations.modelMatrix,
+                                               _goofyShaderProgramUniformLocations.normalMatrix);
+        glBindTexture(GL_TEXTURE_2D, _stripeBallHandle);
+        CSCI441::drawSolidSphere(0.1,20,20);
+    }
+    else if(currentPlayer == regularPlayer){
+        _goofyShaderProgram->useProgram();
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialAmbColor, glm::vec3(1,1,1));
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialDiffColor, glm::vec3(1,1,1));
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialSpecColor, glm::vec3(1,1,1));
+
+        glm::mat4 modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(0.85,-0.8,0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(1,1,1));
+        modelMatrix = glm::rotate(modelMatrix, 1.5f, glm::vec3(0,1,0));
+
+        _computeAndSendTransformationMatrices( _goofyShaderProgram,
+                                               modelMatrix, glm::mat4(1.0f), glm::mat4(1.0f),
+                                               _goofyShaderProgramUniformLocations.mvpMatrix,
+                                               _goofyShaderProgramUniformLocations.modelMatrix,
+                                               _goofyShaderProgramUniformLocations.normalMatrix);
+
+        glBindTexture(GL_TEXTURE_2D, _solidBallHandle);
+        CSCI441::drawSolidSphere(0.1,20,20);
+    }
+    else{
+        _goofyShaderProgram->useProgram();
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialAmbColor, glm::vec3(1,1,1));
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialDiffColor, glm::vec3(1,1,1));
+        _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.materialSpecColor, glm::vec3(1,1,1));
+
+        glm::mat4 modelMatrix = glm::mat4(1.0f);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(0.85,-0.8,0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(1,1,1));
+        modelMatrix = glm::rotate(modelMatrix, 1.5f, glm::vec3(0,1,0));
+        _computeAndSendTransformationMatrices( _goofyShaderProgram,
+                                               modelMatrix, glm::mat4(1.0f), glm::mat4(1.0f),
+                                               _goofyShaderProgramUniformLocations.mvpMatrix,
+                                               _goofyShaderProgramUniformLocations.modelMatrix,
+                                               _goofyShaderProgramUniformLocations.normalMatrix);
+
+        glBindTexture(GL_TEXTURE_2D, _8BallHandle);
+        CSCI441::drawSolidSphere(0.1,20,20);
+    }
+}
 void Lab08Engine::_updateScene() {
     //update delta time
     auto now = std::chrono::steady_clock::now();
@@ -915,29 +980,46 @@ void Lab08Engine::_updateScene() {
         }
     }
     physics(deltaTime);
+    _drawBallType();
     // check if balls are moving to update shoot status
     if(gamesUnlimitedGames){
         //std::cout << "games";
         if (areBallsMoving()) {
             canShoot = false;
         } else {
-            if(!canShoot) {
+            if (currentTurn == 1 && !myBallsHaveBeenHit) {
+                    easterEgg();
+                    myBallsHaveBeenHit = false;
+            }
+            else if(!canShoot) {
                 canShoot = true;
+                // set camera back after shifting
+                _pArcballCam->setPhi(storePhi);
+                _pArcballCam->setTheta(storeTheta);
+                _pArcballCam->setRadius(storeRad);
+                _pArcballCam->recomputeOrientation();
+                stored = false;
                 // check who's turn it is
                 checkSinkTurn();
             }
             // if after the balls stop moving after the first shot and no balls are hit, do the easter egg
-            if (currentTurn == 1) {
-                if (!myBallsHaveBeenHit) {
-                    easterEgg();
-                    // reset var so it only is called once
-                    myBallsHaveBeenHit = false;
-                }
-            }
         }
     }
     if(canShoot){
         _pArcballCam->setLookAtPoint( glm::vec3(balls[0]->x,0,balls[0]->y));
+        _pArcballCam->recomputeOrientation();
+    }
+    else{
+        if(!stored){
+            storePhi = _pArcballCam->getPhi();
+            storeTheta = _pArcballCam->getTheta();
+            storeRad = _pArcballCam->getRadius();
+            stored = true;
+        }
+        _pArcballCam->setPhi(10.0f);
+        _pArcballCam->setTheta(10.0f);
+        _pArcballCam->setRadius(20.0f);
+        _pArcballCam->setLookAtPoint( glm::vec3(0,0,0));
         _pArcballCam->recomputeOrientation();
     }
     if(cueState > 2 && !areBallsMoving()) cueState = 0;
@@ -993,12 +1075,24 @@ void Lab08Engine::checkWin(){
 void Lab08Engine::easterEgg(){
     // TODO: easter the egg
     gamesUnlimitedGames = false;
+    for( Ball* ball : balls ){
+        ball->vx = (rand()%20)-10;
+        ball->vy = (rand()%20)-10;
+        // reset var so it only is called once
+    }
     return;
 }
 
 void Lab08Engine::resetGame(){
-    sunkEight, sunkRegular, sunkStriped, winner, stripedPlayer,
-    regularPlayer, sunkThisTurnStriped, sunkThisTurnRegular, currentTurn = 0;
+    sunkEight = 0;
+    sunkRegular = 0;
+    sunkStriped = 0;
+    winner = 0;
+    stripedPlayer = 0;
+    regularPlayer = 0;
+    sunkThisTurnStriped = 0;
+    sunkThisTurnRegular = 0;
+    currentTurn = 0;
     myBallsHaveBeenHit = false;
     currentPlayer = 1;
     canShoot = true;

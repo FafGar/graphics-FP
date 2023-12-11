@@ -302,6 +302,11 @@ private:
     int sunkRegular = 0;
     int sunkEight = 0;
 
+    float storeTheta;
+    float storePhi;
+    float storeRad;
+    bool stored = false;
+
     int sunkThisTurnStriped = 0;
     int sunkThisTurnRegular = 0;
 
@@ -386,6 +391,8 @@ private:
     void checkWin();
 
     void checkSinkTurn();
+
+    void _drawBallType();
 };
 
 void lab08_keyboard_callback(GLFWwindow *window, int key, int scancode, int action, int mods );
