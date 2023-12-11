@@ -565,7 +565,10 @@ void Lab08Engine::drawStick(glm::mat4 viewMtx, glm::mat4 projMtx) const {
         modelMatrix = glm::rotate(modelMatrix, cueRot, glm::vec3(0, 1, 0));
         modelMatrix = glm::rotate(modelMatrix, -0.1f, glm::vec3(0, 0, 1));
         modelMatrix = glm::translate(modelMatrix, glm::vec3(-1, 0, 0));
-        glm::mat4 cueMtx = glm::translate(modelMatrix, glm::vec3(-meterHeight, 0, 0));
+        glm::mat4 cueMtx = modelMatrix;
+        if(cueState == 1){
+            cueMtx = glm::translate(modelMatrix, glm::vec3(-meterHeight, 0, 0));
+        }
         cueMtx = glm::scale(cueMtx, glm::vec3(0.1, 0.1, 0.1));
 
         _computeAndSendTransformationMatrices(_goodShaderProgram,
@@ -597,7 +600,14 @@ void Lab08Engine::drawStick(glm::mat4 viewMtx, glm::mat4 projMtx) const {
         } else {
             _goodShaderProgram->setProgramUniform("materialDiffColor", glm::vec3(0.1, 0.1, 0.8));
         }
-        glm::mat4 rightHandMtx = glm::translate(modelMatrix, glm::vec3(-5 - meterHeight, 0, 0));
+        glm::mat4 rightHandMtx = modelMatrix;
+        if(cueState == 1){
+            rightHandMtx = glm::translate(modelMatrix, glm::vec3(-5-meterHeight, 0, 0));
+        }
+        else{
+            rightHandMtx = glm::translate(modelMatrix, glm::vec3(-5, 0, 0));
+        }
+
         rightHandMtx = glm::scale(rightHandMtx, glm::vec3(0.1, 0.1, 0.1));
         _computeAndSendTransformationMatrices(_goodShaderProgram,
                                               rightHandMtx, viewMtx, projMtx,
