@@ -306,6 +306,8 @@ private:
     float storePhi;
     float storeRad;
     bool stored = false;
+    bool isStickMove = false;
+    glm::vec3 savedVec;
 
     int sunkThisTurnStriped = 0;
     int sunkThisTurnRegular = 0;
