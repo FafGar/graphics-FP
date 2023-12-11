@@ -70,6 +70,7 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
                         
                         
                         hitPower = meterHeight;
+                        canShoot = false;
                     }
 
                     if(cueState >2) cueState = 0;
@@ -575,10 +576,8 @@ void Lab08Engine::drawStick(glm::mat4 viewMtx, glm::mat4 projMtx) {
                 cueAnimationTime = 0.f;
                 balls[0]->vx = -hitVec.x;
                 balls[0]->vy = -hitVec.z;
-                std::cout << hitPower  << " " << -hitVec.x << std::endl;
                 cueState++;
                 // make it so you can't shoot until balls have stopped moving
-                canShoot = false;
                 currentTurn++;
                 glfwSetTime(0);
             }
