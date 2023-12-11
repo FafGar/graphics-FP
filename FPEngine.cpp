@@ -339,9 +339,9 @@ void Lab08Engine::addHole(float x, float y){
 void Lab08Engine::sinkBalls(){
     for(int i = balls.size()-1; i >= 0; i--){
         Ball* ball = balls[i];
-
         for (int j=0; j < holes.size(); j++){
             Hole* hole = holes[j];
+            bool deleteBall = true;
             float dist = glm::distance(glm::vec2(ball->x,ball->y),glm::vec2(hole->x,hole->y));
             if(dist < hole->r){
                 // store values of sunk balls before deletion
@@ -358,12 +358,22 @@ void Lab08Engine::sinkBalls(){
                         sunkEight++;
                         break;
                     case cue:
+                        deleteBall = false;
                         break;
                     default:
                         break;
                 }
-                delete ball;
-                balls.erase(balls.begin() + i);
+                if(deleteBall){
+                    delete ball;
+                    balls.erase(balls.begin() + i);
+                }
+                else{
+                    ball->x = -4;
+                    ball->y = 0;
+                    ball->vx = 0;
+                    ball->vy = 0;
+                    ball->moving = false;
+                }
             }
         }
     }
@@ -832,53 +842,108 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx)  {
     glm::mat4 modelMatrix = glm::mat4(1.0f);
 
     // use the gouraud shader
-    _goodShaderProgram->useProgram();
-    CSCI441::setVertexAttributeLocations(_goodShaderProgramAttributeLocations.vPos, _goodShaderProgramAttributeLocations.vNormal, -1);
+    if(winner == 0){
+        _goodShaderProgram->useProgram();
+        CSCI441::setVertexAttributeLocations(_goodShaderProgramAttributeLocations.vPos, _goodShaderProgramAttributeLocations.vNormal, -1);
 
-    //draw pool table
-    modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
-    modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1,0.1,0.1));
-    _computeAndSendTransformationMatrices( _goodShaderProgram,
-                                           modelMatrix, viewMtx, projMtx,
-                                           _goodShaderProgramUniformLocations.mvpMatrix,
-                                           _goodShaderProgramUniformLocations.modelMatrix,
-                                           _goodShaderProgramUniformLocations.normalMatrix);
+        //draw pool table
+        modelMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0, 0));
+        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.1,0.1,0.1));
+        _computeAndSendTransformationMatrices( _goodShaderProgram,
+                                            modelMatrix, viewMtx, projMtx,
+                                            _goodShaderProgramUniformLocations.mvpMatrix,
+                                            _goodShaderProgramUniformLocations.modelMatrix,
+                                            _goodShaderProgramUniformLocations.normalMatrix);
 
-    _setMaterialProperties(CSCI441::Materials::GREEN_RUBBER);
-    poolGrass->draw(_goodShaderProgram->getShaderProgramHandle());
-    _setMaterialProperties(CSCI441::Materials::RUBY);
-    poolWood->draw(_goodShaderProgram->getShaderProgramHandle());
-    _setMaterialProperties(CSCI441::Materials::BLACK_RUBBER);
-    poolHoles->draw(_goodShaderProgram->getShaderProgramHandle());
+        _setMaterialProperties(CSCI441::Materials::GREEN_RUBBER);
+        poolGrass->draw(_goodShaderProgram->getShaderProgramHandle());
+        _setMaterialProperties(CSCI441::Materials::RUBY);
+        poolWood->draw(_goodShaderProgram->getShaderProgramHandle());
+        _setMaterialProperties(CSCI441::Materials::BLACK_RUBBER);
+        poolHoles->draw(_goodShaderProgram->getShaderProgramHandle());
 
-    //draw cue stick
-    drawStick(viewMtx, projMtx);
+        //draw cue stick
+        drawStick(viewMtx, projMtx);
 
-    //DRAW THE CUE BALL
+        //DRAW THE CUE BALL
 
-    drawBalls(viewMtx, projMtx);
+        drawBalls(viewMtx, projMtx);
 
 
-    _flatShaderProgram->useProgram();
+        _flatShaderProgram->useProgram();
 
-    if(cueState == 1){
-        //draw power meter
-        modelMatrix = glm::mat4(1.0f);
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(-0.85,-1,0));
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4,meterHeight*2,1));
+        if(cueState == 1){
+            //draw power meter
+            modelMatrix = glm::mat4(1.0f);
+            modelMatrix = glm::translate(modelMatrix, glm::vec3(-0.85,-1,0));
+            modelMatrix = glm::scale(modelMatrix, glm::vec3(0.4,meterHeight*2,1));
 
-        _computeAndSendTransformationMatrices(_flatShaderProgram,modelMatrix,glm::mat4(1.f),glm::mat4(1.f),_flatShaderProgramUniformLocations.mvpMatrix);
-        _flatShaderProgram->setProgramUniform(_flatShaderProgramUniformLocations.color, glm::vec3(meterHeight/2, 0.6/meterHeight,0.1));
-        CSCI441::drawSolidCube(0.25);
+            _computeAndSendTransformationMatrices(_flatShaderProgram,modelMatrix,glm::mat4(1.f),glm::mat4(1.f),_flatShaderProgramUniformLocations.mvpMatrix);
+            _flatShaderProgram->setProgramUniform(_flatShaderProgramUniformLocations.color, glm::vec3(meterHeight/2, 0.6/meterHeight,0.1));
+            CSCI441::drawSolidCube(0.25);
 
-        //draw meter background
-        modelMatrix = glm::mat4(1.0f);
-        modelMatrix = glm::translate(modelMatrix, glm::vec3(-0.85,-1,0));
-        modelMatrix = glm::scale(modelMatrix, glm::vec3(0.45,4.05,1));
+            //draw meter background
+            modelMatrix = glm::mat4(1.0f);
+            modelMatrix = glm::translate(modelMatrix, glm::vec3(-0.85,-1,0));
+            modelMatrix = glm::scale(modelMatrix, glm::vec3(0.45,4.05,1));
 
-        _computeAndSendTransformationMatrices(_flatShaderProgram,modelMatrix,glm::mat4(1.f),glm::mat4(1.f),_flatShaderProgramUniformLocations.mvpMatrix);
-        _flatShaderProgram->setProgramUniform(_flatShaderProgramUniformLocations.color, glm::vec3(0,0,0));
-        CSCI441::drawSolidCube(0.25);
+            _computeAndSendTransformationMatrices(_flatShaderProgram,modelMatrix,glm::mat4(1.f),glm::mat4(1.f),_flatShaderProgramUniformLocations.mvpMatrix);
+            _flatShaderProgram->setProgramUniform(_flatShaderProgramUniformLocations.color, glm::vec3(0,0,0));
+            CSCI441::drawSolidCube(0.25);
+        }
+    } else{
+        _goodShaderProgram->useProgram();
+
+        glm::mat4 modelMatrix = glm::mat4(1);
+        modelMatrix = glm::translate(modelMatrix, glm::vec3(-3, 5, 0));
+        modelMatrix = glm::rotate(modelMatrix, (float)glfwGetTime(), glm::vec3(0, 1, 0));
+        modelMatrix = glm::rotate(modelMatrix, (float)M_PI_4, glm::vec3(0, 0, 1));
+        
+        //Draw the Golden Cue
+        glm::mat4 cueMtx = modelMatrix;
+
+        cueMtx = glm::scale(cueMtx, glm::vec3(0.2, 0.2, 0.2));
+
+        _computeAndSendTransformationMatrices(_goodShaderProgram,
+                                              cueMtx, viewMtx, projMtx,
+                                              _goodShaderProgramUniformLocations.mvpMatrix,
+                                              _goodShaderProgramUniformLocations.modelMatrix,
+                                              _goodShaderProgramUniformLocations.normalMatrix);
+        _setMaterialProperties(CSCI441::Materials::GOLD_POLISHED);
+        stick->draw(_goodShaderProgram->getShaderProgramHandle());
+
+
+        //Draw the left hand
+        glm::mat4 leftHandMtx = glm::translate(modelMatrix, glm::vec3(-3, 0, 0));
+        leftHandMtx = glm::scale(leftHandMtx, glm::vec3(0.2, 0.2, 0.2));
+        leftHandMtx = glm::scale(leftHandMtx, glm::vec3(1, 1, -1));
+
+        _setMaterialProperties(CSCI441::Materials::WHITE_PLASTIC);
+        if (winner == 1) {
+            _goodShaderProgram->setProgramUniform("materialDiffColor", glm::vec3(0.8, 0.1, 0.1));
+        } else {
+            _goodShaderProgram->setProgramUniform("materialDiffColor", glm::vec3(0.1, 0.1, 0.8));
+        }
+        _computeAndSendTransformationMatrices(_goodShaderProgram,
+                                              leftHandMtx, viewMtx, projMtx,
+                                              _goodShaderProgramUniformLocations.mvpMatrix,
+                                              _goodShaderProgramUniformLocations.modelMatrix,
+                                              _goodShaderProgramUniformLocations.normalMatrix);
+        hand->draw(_goodShaderProgram->getShaderProgramHandle());
+
+
+        //Draw the right hand
+        glm::mat4 rightHandMtx = modelMatrix;
+
+        rightHandMtx = glm::translate(modelMatrix, glm::vec3(-10, 0, 0));
+        rightHandMtx = glm::scale(rightHandMtx, glm::vec3(0.2, 0.2, 0.2));
+        _computeAndSendTransformationMatrices(_goodShaderProgram,
+                                              rightHandMtx, viewMtx, projMtx,
+                                              _goodShaderProgramUniformLocations.mvpMatrix,
+                                              _goodShaderProgramUniformLocations.modelMatrix,
+                                              _goodShaderProgramUniformLocations.normalMatrix);
+        hand->draw(_goodShaderProgram->getShaderProgramHandle());
+
     }
 }
 
