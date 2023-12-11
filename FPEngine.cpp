@@ -983,11 +983,13 @@ void Lab08Engine::_updateScene() {
             else if(!canShoot) {
                 canShoot = true;
                 // set camera back after shifting
-                _pArcballCam->setPhi(storePhi);
-                _pArcballCam->setTheta(storeTheta);
-                _pArcballCam->setRadius(storeRad);
-                _pArcballCam->recomputeOrientation();
-                stored = false;
+                if(stored){
+                    _pArcballCam->setPhi(storePhi);
+                    _pArcballCam->setTheta(storeTheta);
+                    _pArcballCam->setRadius(storeRad);
+                    _pArcballCam->recomputeOrientation();
+                    stored = false;
+                }
                 // check who's turn it is
                 checkSinkTurn();
             }
