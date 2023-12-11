@@ -71,6 +71,7 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
                         
                         hitPower = meterHeight;
                         canShoot = false;
+                        isStickMove = true;
                     }
 
                     if(cueState >2) cueState = 0;
@@ -94,7 +95,7 @@ void Lab08Engine::handleMouseButtonEvent(GLint button, GLint action) {
 }
 
 void Lab08Engine::handleCursorPositionEvent(glm::vec2 currMousePosition) {
-    if (canShoot) {
+    if (canShoot ) {
         // if mouse hasn't moved in the window, prevent camera from flipping out
         if (fabs(_mousePosition.x - MOUSE_UNINITIALIZED) <= 0.000001f) {
             _mousePosition = currMousePosition;
@@ -554,12 +555,19 @@ void Lab08Engine::drawStick(glm::mat4 viewMtx, glm::mat4 projMtx) {
         return;
     }
 
-    glm::vec3 cueVec = _pArcballCam->getPosition() - _pArcballCam->getLookAtPoint();
+    glm::vec3 cueVec;
+    if(isStickMove == false){
+        cueVec = _pArcballCam->getPosition() - _pArcballCam->getLookAtPoint();
+        savedVec = cueVec;
+    }
+    else{
+        cueVec = savedVec;
+    }
     cueVec = glm::normalize(cueVec);
     float cueRot = atan2(cueVec.x, cueVec.z) + (3.1415 * 0.5);
     //std::cout << cueRot << std::endl;
     // don't draw cue and hands while the balls are rolling
-    if (canShoot) {
+    if (canShoot || isStickMove) {
         glm::mat4 modelMatrix;
         modelMatrix = glm::translate(glm::mat4(1.0), glm::vec3(balls[0]->x, 0.25, balls[0]->y));
         modelMatrix = glm::rotate(modelMatrix, cueRot, glm::vec3(0, 1, 0));
@@ -577,6 +585,7 @@ void Lab08Engine::drawStick(glm::mat4 viewMtx, glm::mat4 projMtx) {
                 balls[0]->vx = -hitVec.x;
                 balls[0]->vy = -hitVec.z;
                 cueState++;
+                isStickMove = false;
                 // make it so you can't shoot until balls have stopped moving
                 currentTurn++;
                 glfwSetTime(0);
@@ -1035,14 +1044,16 @@ void Lab08Engine::_updateScene() {
                     easterEgg();
                     myBallsHaveBeenHit = false;
             }
-            else if(!canShoot) {
+            else if(!canShoot && !isStickMove) {
                 canShoot = true;
                 // set camera back after shifting
-                _pArcballCam->setPhi(storePhi);
-                _pArcballCam->setTheta(storeTheta);
-                _pArcballCam->setRadius(storeRad);
-                _pArcballCam->recomputeOrientation();
-                stored = false;
+                if(stored){
+                    _pArcballCam->setPhi(storePhi);
+                    _pArcballCam->setTheta(storeTheta);
+                    _pArcballCam->setRadius(storeRad);
+                    _pArcballCam->recomputeOrientation();
+                    stored = false;
+                }
                 // check who's turn it is
                 checkSinkTurn();
             }
