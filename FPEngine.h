@@ -8,6 +8,7 @@
 #include <CSCI441/ShaderProgram.hpp>
 #include <CSCI441/ModelLoader.hpp>
 #include <CSCI441/TextureUtils.hpp>
+#include <chrono>
 
 class Lab08Engine final : public CSCI441::OpenGLEngine {
 public:
@@ -312,6 +313,10 @@ private:
     bool myBallsHaveBeenHit = false;
     // is a game happening rn
     bool gamesUnlimitedGames = true;
+
+    std::chrono::steady_clock::time_point startTime;
+    GLdouble elapsedTime;
+    GLdouble deltaTime;
 
     void addBall(float x, float y, ballStyle s);
 

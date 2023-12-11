@@ -4,6 +4,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <chrono>
 //*************************************************************************************
 //
 // Helper Functions
@@ -370,20 +371,16 @@ bool Lab08Engine::ballNearHole(int i) const{
     for (int j=0; j < holes.size(); j++){
         Hole* hole = holes[j];
         float dist = glm::distance(glm::vec2(ball->x,ball->y),glm::vec2(hole->x,hole->y));
-        if(dist < (hole->r + ball->r)){
+        if(dist < (hole->r + (ball->r*2))){
             glm::vec2 vel = glm::vec2(ball->vx,ball->vy);
             float speed = glm::length(vel);
 
             glm::vec2 newVel = glm::normalize(glm::vec2(hole->x,hole->y) - glm::vec2(ball->x,ball->y));
 
-            if(glm::acos(glm::dot(newVel,vel)) < glm::radians(65.0)) {
-                newVel *= speed;
-                ball->vx = newVel.x;
-                ball->vy = newVel.y;
-                return true;
-            }else{
-                return false;
-            }
+            newVel *= speed;
+            ball->vx = newVel.x;
+            ball->vy = newVel.y;
+            return true;
         }
     }
     return false;
@@ -870,6 +867,17 @@ void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
 }
 
 void Lab08Engine::_updateScene() {
+    //update delta time
+    auto now = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed_seconds = now - startTime;
+    deltaTime = elapsed_seconds.count() - elapsedTime;
+    elapsedTime = elapsed_seconds.count();
+
+    //prevent delta time jumping
+    if(deltaTime > 0.1){
+        deltaTime = 0.1;
+    }
+
     _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.timeSince, (float)glfwGetTime());
 
     spotLightSwingAngle += spotLightDTheta;
@@ -894,7 +902,7 @@ void Lab08Engine::_updateScene() {
             checkWin();
         }
     }
-    physics(0.01);
+    physics(deltaTime);
     // check if balls are moving to update shoot status
     if(gamesUnlimitedGames){
         //std::cout << "games";
