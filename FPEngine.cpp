@@ -63,20 +63,16 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
                         camPos.y = 0;
                         glm::vec3 lookPos = _pArcballCam->getLookAtPoint();
                         lookPos.y = 0;
-                        glm::vec3 hitVec = camPos - lookPos;
+                        hitVec = camPos - lookPos;
                         _goofyShaderProgram->setProgramUniform(_goofyShaderProgramUniformLocations.hitVector, glm::normalize(hitVec));
-                        glfwSetTime(0);
-
+                    
                         hitVec = glm::normalize(hitVec) * (float(meterHeight*2.5));
-                        balls[0]->vx = -hitVec.x;
-                        balls[0]->vy = -hitVec.z;
-                        // make it so you can't shoot until balls have stopped moving
-                        canShoot = false;
-                        currentTurn++;
+                        
+                        
+                        hitPower = meterHeight;
                     }
 
-
-                    if(cueState >1) cueState = 0;
+                    if(cueState >2) cueState = 0;
                 }
                 break;
             case GLFW_KEY_R:
@@ -545,15 +541,15 @@ void Lab08Engine::drawBalls(glm::mat4 viewMtx, glm::mat4 projMtx) const{
 //    }
 }
 
-void Lab08Engine::drawStick(glm::mat4 viewMtx, glm::mat4 projMtx) const {
+void Lab08Engine::drawStick(glm::mat4 viewMtx, glm::mat4 projMtx) {
 
-    if (cueState == 2) {
+    if (cueState == 3) {
         return;
     }
 
-    glm::vec3 hitVec = _pArcballCam->getPosition() - _pArcballCam->getLookAtPoint();
-    hitVec = glm::normalize(hitVec);
-    float cueRot = atan2(hitVec.x, hitVec.z) + (3.1415 * 0.5);
+    glm::vec3 cueVec = _pArcballCam->getPosition() - _pArcballCam->getLookAtPoint();
+    cueVec = glm::normalize(cueVec);
+    float cueRot = atan2(cueVec.x, cueVec.z) + (3.1415 * 0.5);
     //std::cout << cueRot << std::endl;
     // don't draw cue and hands while the balls are rolling
     if (canShoot) {
@@ -565,7 +561,23 @@ void Lab08Engine::drawStick(glm::mat4 viewMtx, glm::mat4 projMtx) const {
         glm::mat4 cueMtx = modelMatrix;
         if(cueState == 1){
             cueMtx = glm::translate(modelMatrix, glm::vec3(-meterHeight, 0, 0));
+        }else if (cueState == 2){
+            if(cueAnimationTime < cueAnimationTimeMax){
+                cueAnimationTime += deltaTime;
+                cueMtx = glm::translate(modelMatrix, glm::vec3(-hitPower + hitPower*(cueAnimationTime/cueAnimationTimeMax), 0, 0));
+            }else{
+                cueAnimationTime = 0.f;
+                balls[0]->vx = -hitVec.x;
+                balls[0]->vy = -hitVec.z;
+                std::cout << hitPower  << " " << -hitVec.x << std::endl;
+                cueState++;
+                // make it so you can't shoot until balls have stopped moving
+                canShoot = false;
+                currentTurn++;
+                glfwSetTime(0);
+            }
         }
+
         cueMtx = glm::scale(cueMtx, glm::vec3(0.1, 0.1, 0.1));
 
         _computeAndSendTransformationMatrices(_goodShaderProgram,
@@ -787,7 +799,7 @@ void Lab08Engine::mCleanupScene() {
 //
 // Rendering / Drawing Functions - this is where the magic happens!
 
-void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const {
+void Lab08Engine::_renderScene(glm::mat4 viewMtx, glm::mat4 projMtx)  {
     // if either shader program is null, do not continue any further to prevent run time errors
     if(!_goodShaderProgram || !_flatShaderProgram) {
         return;
@@ -928,6 +940,7 @@ void Lab08Engine::_updateScene() {
         _pArcballCam->setLookAtPoint( glm::vec3(balls[0]->x,0,balls[0]->y));
         _pArcballCam->recomputeOrientation();
     }
+    if(cueState > 2 && !areBallsMoving()) cueState = 0;
 }
 
 void Lab08Engine::checkSinkTurn(){

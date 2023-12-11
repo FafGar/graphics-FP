@@ -77,7 +77,7 @@ private:
     /// \desc draws everything to the scene from a particular point of view
     /// \param viewMtx the current view matrix for our camera
     /// \param projMtx the current projection matrix for our camera
-    void _renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) const;
+    void _renderScene(glm::mat4 viewMtx, glm::mat4 projMtx) ;
     /// \desc handles moving our FreeCam as determined by keyboard input
     void _updateScene();
 
@@ -124,7 +124,11 @@ private:
 
     float meterHeight = 0.1;
     float meterStep = -0.01;
-    int cueState = 0; // 0: nothing happening, 1: angle chosen, 2: FIRE!
+    int cueState = 0; // 0: nothing happening, 1: angle chosen, 2: animating, 3:FIRE!
+    float hitPower = 0;
+    glm::vec3 hitVec;
+    float cueAnimationTime = 0;
+    float cueAnimationTimeMax = 0.7;
 
     static constexpr GLuint NUM_VAOS = 3;
     /// \desc used to index through our VAO/VBO/IBO array to give named access
@@ -324,7 +328,7 @@ private:
 
     void drawBalls(glm::mat4 viewMtx, glm::mat4 projMtx) const;
 
-    void drawStick(glm::mat4 viewMtx, glm::mat4 projMtx) const;
+    void drawStick(glm::mat4 viewMtx, glm::mat4 projMtx);
 
     void hit(int i, int j) const;
 
