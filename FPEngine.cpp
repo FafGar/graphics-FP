@@ -79,7 +79,8 @@ void Lab08Engine::handleKeyEvent(GLint key, GLint action) {
                 break;
             case GLFW_KEY_R:
                 // reset the game
-                resetGame();
+                //resetGame();
+                break;
 
             default: break; // suppress CLion warning
         }
